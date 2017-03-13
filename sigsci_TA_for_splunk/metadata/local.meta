@@ -1,0 +1,15 @@
+[app/ui]
+version = 6.5.2
+modtime = 1486046051.889966000
+
+[app/launcher]
+version = 6.5.2
+modtime = 1486046051.890627000
+
+[inputs/script%3A%2F%2F.%2Fbin%2Factivity.sh]
+version = 6.5.2
+modtime = 1487848809.116091000
+
+[inputs/script%3A%2F%2F.%2Fbin%2Fsigsci.sh]
+version = 6.5.2
+modtime = 1487848819.958270000
