@@ -1,20 +1,7 @@
-[script://./bin/sigsci.sh]
-interval = 5 * * * *
-sourcetype = json-sigsci
-source = sigsci
-index = sigsci
-disabled = 0
-start_by_shell=false
-batch_size = 10000
-incremental_merge = 0
+[SigsciRequests://<name>]
+delta = 5
+site = DASHBOARDNAME
 
-[script://./bin/activity.sh]
-interval = 5 * * * *
-sourcetype = json-sigsci
-source = sigsci-activity
-index = sigsci
-disabled = 0
-start_by_shell=false
-batch_size = 10000
-incremental_merge = 0
-
+[SigsciEvent://<name>]
+delta = 5
+site = DASHBOARDNAME
