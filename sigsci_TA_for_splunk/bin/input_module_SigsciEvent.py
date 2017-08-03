@@ -91,9 +91,8 @@ def collect_events(helper, inputs, ew):
     helper.log_info("log message")
     helper.log_debug("log message")
 
-    # Calculate UTC timestamps for the previous full hour
-    # E.g. if now is 9:05 AM UTC, the timestamps will be 8:00 AM and 9:00 AM
-    until_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+    # Calculate UTC timestamps 
+    until_time = datetime.utcnow()
     from_time = until_time - timedelta(minutes=delta)
     until_time = calendar.timegm(until_time.utctimetuple())
     from_time = calendar.timegm(from_time.utctimetuple())

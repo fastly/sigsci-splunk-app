@@ -1,4 +1,3 @@
-
 # encoding = utf-8
 
 import os
@@ -93,7 +92,8 @@ def collect_events(helper, inputs, ew):
 
     # Calculate UTC timestamps for the previous full hour
     # E.g. if now is 9:05 AM UTC, the timestamps will be 8:00 AM and 9:00 AM
-    until_time = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+    until_time = datetime.utcnow() - timedelta(minutes=5)
+    until_time = until_time.replace(second=0, microsecond=0)
     from_time = until_time - timedelta(minutes=delta)
     until_time = calendar.timegm(until_time.utctimetuple())
     from_time = calendar.timegm(from_time.utctimetuple())
@@ -191,6 +191,29 @@ def collect_events(helper, inputs, ew):
 
         for request in response['data']:
             data = json.dumps(request)
+            data = json.loads(data)
+            helper.log_info(data['headersOut'])
+            headersFix = {}
+            headersFix['headersOut'] = data['headersOut']
+            headersFix['headersIn'] = data['headersIn']
+
+            #print(headersFix)
+
+            newFormatOut = {}
+
+            for out in headersFix['headersOut']:
+                newFormatOut[out[0]] = out[1]
+
+            data['headersOut'] = newFormatOut
+
+            newFormatIn = {}
+
+            for hIn in headersFix['headersIn']:
+                newFormatIn[hIn[0]] = hIn[1]
+
+            data['headersIn'] = newFormatIn
+
+            data = json.dumps(data)
             helper.log_debug("%s" % data)
             event = helper.new_event(source=helper.get_input_name(), index=helper.get_output_index(), sourcetype=helper.get_sourcetype(), data=data)
             try:
