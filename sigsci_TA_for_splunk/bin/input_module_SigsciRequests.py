@@ -23,57 +23,13 @@ def validate_input(helper, definition):
     pass
 
 def collect_events(helper, inputs, ew):
-    """Implement your data collection logic here"""
-    # The following example accesses the configurations and arguments
-    # Get the arguments of this input
-    # opt_site = helper.get_arg('site')
-    # Get options from setup page configuration
-    # Get the loglevel from the setup page
+
     loglevel = helper.get_log_level()
     # Proxy setting configuration
     proxy_settings = helper.get_proxy()
     # User credentials
-    # account = helper.get_user_credential("username")
-    # Global variable configuration
-    # global_email = helper.get_global_setting("email")
-    # global_password = helper.get_global_setting("password")
-    # global_corp = helper.get_global_setting("corp")
-    # Write to the log for this modular input
-    # helper.log_error("log message")
-    # helper.log_info("log message")
-    # helper.log_debug("log message")
-    # Set the log level for this modular input
-    # helper.set_log_level('debug')
-    # helper.set_log_level('info')
-    # helper.set_log_level('warning')
-    # helper.set_log_level('error')
-    # helper function to send http request
-    #
-    # checkpoint related helper functions
-    # save checkpoint
-    # helper.save_check_point(key, state)
-    # delete checkpoint
-    # helper.delete_check_point(key)
-    # get checkpoint
-    # state = helper.get_check_point(key)
-    #
-    # proxyDict = {}
-    # #{ "proxy_url": ..., "proxy_port": ... , "proxy_username": ... , "proxy_password": ... , "proxy_type": ... , "proxy_rdns": ...}
-    # if "proxy_username" in proxy_settings and not(proxy_settings['proxy_username'] is None):
-    #     proxyDict["http"] = "http://%s:%s@%s:%s" % (proxy_settings['proxy_username'],proxy_settings['proxy_password'], proxy_settings['proxy_url'], proxy_settings['proxy_port'])
-    #     proxyDict["https"] = "https://%s:%s@%s:%s" % (proxy_settings['proxy_username'],proxy_settings['proxy_password'], proxy_settings['proxy_url'], proxy_settings['proxy_port'])
-    #     proxyDict["ftp"] = "ftp://%s:%s@%s:%s" % (proxy_settings['proxy_username'],proxy_settings['proxy_password'], proxy_settings['proxy_url'], proxy_settings['proxy_port'])
-    # elif "proxy_port" in proxy_settings and not(proxy_settings['proxy_port'] is None):
-    #     proxyDict["http"] = "http://%s:%s" % (proxy_settings['proxy_url'], proxy_settings['proxy_port'])
-    #     proxyDict["https"] = "https://%s:%s" % (proxy_settings['proxy_url'], proxy_settings['proxy_port'])
-    #     proxyDict["ftp"] = "ftp://%s:%s" % (proxy_settings['proxy_url'], proxy_settings['proxy_port'])
-    # else:
-    #     proxyDict["http"] = "http://%s" % (proxy_settings['proxy_url'])
-    #     proxyDict["https"] = "https://%s" % (proxy_settings['proxy_url'])
-    #     proxyDict["ftp"] = "ftp://%s" % (proxy_settings['proxy_url'])
-    #Per Input configuration
-    delta = int(helper.get_arg('delta'))
-    site_name = helper.get_arg('site')
+   
+
     #User credentials
     account = helper.get_user_credential("username")
     #Global variable configuration
@@ -85,25 +41,16 @@ def collect_events(helper, inputs, ew):
     api_host = 'https://dashboard.signalsciences.net'
     helper.log_debug("email: %s" % email)
     helper.log_debug("corp: %s" % corp_name)
-    helper.log_debug("site: %s" % site_name)
+    
 
-    helper.log_info("log message")
-    helper.log_debug("log message")
-
-    # Calculate UTC timestamps for the previous full hour
-    # E.g. if now is 9:05 AM UTC, the timestamps will be 8:00 AM and 9:00 AM
-    until_time = datetime.utcnow() - timedelta(minutes=5)
-    until_time = until_time.replace(second=0, microsecond=0)
-    from_time = until_time - timedelta(minutes=delta)
-    until_time = calendar.timegm(until_time.utctimetuple())
-    from_time = calendar.timegm(from_time.utctimetuple())
-
-    helper.log_debug("From: %s\nUntil:%s" % (from_time, until_time))
+    #helper.log_info("log message")
+    #helper.log_debug("log message")
 
 
     #Definition for error handling on the response code
 
-    def checkResponse(code, responseText):
+    def checkResponse(code, responseText, curSite=None):
+	site_name = curSite
         if code == 400:
             helper.log_error("Bad API Request (ResponseCode: %s)" % (code))
             helper.log_error("ResponseError: %s" % responseText)
@@ -161,77 +108,121 @@ def collect_events(helper, inputs, ew):
     parsed_response = auth.json()
     token = parsed_response['token']
     helper.log_info("Authenticated")
-    helper.log_debug("Token: %s" % token)
-
-    # Loop across all the data and output it in one big JSON object
-    headers = {
-        'Content-type': 'application/json',
-        'Authorization': 'Bearer %s' % token
-    }
-
-    url = api_host + ('/api/v0/corps/%s/sites/%s/feed/requests?from=%s&until=%s' % (corp_name, site_name, from_time, until_time))
-    loop = True
-
-    counter = 1
-    helper.log_info("Pulling requests from requests API")
-    while loop:
-        helper.log_info("Processing page %s" % counter)
-        # response_raw = requests.get(url, headers=headers,proxies=proxyDict)
-        method = "GET"
-        response_raw = helper.send_http_request(url, method, parameters=None, payload=None,
-                              headers=headers, cookies=None, verify=True, cert=None, timeout=None, use_proxy=True)
-        responseCode = response_raw.status_code
-        responseError = response_raw.text
-
-        checkResponse(responseCode, responseError)
 
 
-        response = json.loads(response_raw.text)
+    def pullRequests (curSite, delta, key=None):
+    	# Calculate UTC timestamps for the previous full hour
+	    # E.g. if now is 9:05 AM UTC, the timestamps will be 8:00 AM and 9:00 AM
+	    site_name = curSite
+	    until_time = datetime.utcnow() - timedelta(minutes=5)
+	    until_time = until_time.replace(second=0, microsecond=0)
+	    from_time = until_time - timedelta(minutes=delta)
+	    until_time = calendar.timegm(until_time.utctimetuple())
+	    from_time = calendar.timegm(from_time.utctimetuple())
+
+	    helper.log_debug("From: %s\nUntil:%s" % (from_time, until_time))
 
 
-        for request in response['data']:
-            data = json.dumps(request)
-            data = json.loads(data)
-            helper.log_info(data['headersOut'])
-            headersFix = {}
-            headersFix['headersOut'] = data['headersOut']
-            headersFix['headersIn'] = data['headersIn']
+	    # Loop across all the data and output it in one big JSON object
+	    headers = {
+	        'Content-type': 'application/json',
+	        'Authorization': 'Bearer %s' % token
+	    }
 
-            #print(headersFix)
+	    url = api_host + ('/api/v0/corps/%s/sites/%s/feed/requests?from=%s&until=%s' % (corp_name, site_name, from_time, until_time))
+	    loop = True
 
-            newFormatOut = {}
+	    counter = 1
+	    helper.log_info("Pulling requests from requests API")
+	    while loop:
+	        helper.log_info("Processing page %s" % counter)
+	        # response_raw = requests.get(url, headers=headers,proxies=proxyDict)
+	        method = "GET"
+	        response_raw = helper.send_http_request(url, method, parameters=None, payload=None,
+	                              headers=headers, cookies=None, verify=True, cert=None, timeout=None, use_proxy=True)
+	        responseCode = response_raw.status_code
+	        responseError = response_raw.text
 
-            for out in headersFix['headersOut']:
-                newFormatOut[out[0]] = out[1]
-
-            data['headersOut'] = newFormatOut
-
-            newFormatIn = {}
-
-            for hIn in headersFix['headersIn']:
-                newFormatIn[hIn[0]] = hIn[1]
-
-            data['headersIn'] = newFormatIn
-
-            data = json.dumps(data)
-            helper.log_debug("%s" % data)
-            event = helper.new_event(source=helper.get_input_name(), index=helper.get_output_index(), sourcetype=helper.get_sourcetype(), data=data)
-            try:
-                ew.write_event(event)
-            except Exception as e:
-                raise e
+	        checkResponse(responseCode, responseError, site_name)
 
 
-        if "next" in response and "uri" in response['next']:
-            next_url = response['next']['uri']
-            if next_url == '':
-                loop = False
-                helper.log_info("Finished Page %s" % counter)
-                counter += 1
-            else:
-                url = api_host + next_url
-                helper.log_info("Finished Page %s" % counter)
-                counter += 1
-        else:
-            loop = False
+	        response = json.loads(response_raw.text)
+
+
+	        for request in response['data']:
+	            data = json.dumps(request)
+	            data = json.loads(data)
+	            helper.log_info(data['headersOut'])
+	            headersFix = {}
+	            headersFix['headersOut'] = data['headersOut']
+	            headersFix['headersIn'] = data['headersIn']
+
+	            #print(headersFix)
+
+	            newFormatOut = {}
+
+	            for out in headersFix['headersOut']:
+	                newFormatOut[out[0]] = out[1]
+
+	            data['headersOut'] = newFormatOut
+
+	            newFormatIn = {}
+
+	            for hIn in headersFix['headersIn']:
+	                newFormatIn[hIn[0]] = hIn[1]
+
+	            data['headersIn'] = newFormatIn
+
+	            data = json.dumps(data)
+	            helper.log_debug("%s" % data)
+                    if key is None:
+	            	event = helper.new_event(source=helper.get_input_name(), index=helper.get_output_index(), sourcetype=helper.get_sourcetype(), data=data)
+	            else:
+	            	indexes = helper.get_output_index()
+	            	curIndex = indexes[key]
+	            	types = helper.get_sourcetype()
+	            	curType = types[key]
+	            	event = helper.new_event(source=helper.get_input_name(), index=curIndex, sourcetype=curType, data=data)
+
+	            try:
+	                ew.write_event(event)
+	            except Exception as e:
+	                raise e
+
+
+	        if "next" in response and "uri" in response['next']:
+	            next_url = response['next']['uri']
+	            if next_url == '':
+	                loop = False
+	                helper.log_info("Finished Page %s" % counter)
+	                counter += 1
+	            else:
+	                url = api_host + next_url
+	                helper.log_info("Finished Page %s" % counter)
+	                counter += 1
+	        else:
+	            loop = False
+
+    # If multiple inputs configured it creates an array of values and the script only gets called once
+    #Per Input configuration
+    
+    multiCheck = helper.get_arg('delta')
+
+    if type (multiCheck) is dict:
+    	for activeInput in multiCheck:
+    		delta = int(multiCheck[activeInput])
+    		allSites = helper.get_arg('site')
+    		site = allSites[activeInput]
+    		helper.log_debug("site: %s" % site)
+    		pullRequests(key=activeInput, curSite=site, delta=delta)
+    
+    else:
+    	delta = int(helper.get_arg('delta'))
+	site = helper.get_arg('site')
+    	helper.log_debug("site: %s" % site)
+    	pullRequests(site, delta)
+
+
+   
     helper.log_info("Finished Pulling events")
+
