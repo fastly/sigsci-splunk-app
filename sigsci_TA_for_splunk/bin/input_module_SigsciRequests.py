@@ -161,20 +161,23 @@ def collect_events(helper, inputs, ew):
 
 	            newFormatOut = {}
 
-	            for out in headersFix['headersOut']:
-	                newFormatOut[out[0]] = out[1]
 
-	            data['headersOut'] = newFormatOut
+                    if not (headersFix['headersOut'] is None):
+ 	                for out in headersFix['headersOut']:
+	                    newFormatOut[out[0]] = out[1]
+
+	                data['headersOut'] = newFormatOut
 
 	            newFormatIn = {}
 
-	            for hIn in headersFix['headersIn']:
-	                newFormatIn[hIn[0]] = hIn[1]
+                    if not (headersFix['headersIn'] is None):
+	                for hIn in headersFix['headersIn']:
+	                    newFormatIn[hIn[0]] = hIn[1]
 
-	            data['headersIn'] = newFormatIn
+	                data['headersIn'] = newFormatIn
 
 	            data = json.dumps(data)
-	            helper.log_debug("%s" % data)
+	            helper.log_info("%s" % data)
                     if key is None:
 	            	event = helper.new_event(source=helper.get_input_name(), index=helper.get_output_index(), sourcetype=helper.get_sourcetype(), data=data)
 	            else:
@@ -207,6 +210,8 @@ def collect_events(helper, inputs, ew):
     #Per Input configuration
     
     multiCheck = helper.get_arg('delta')
+    hostTest = helper.get_arg('Host')
+    helper.log_info("Host: %s" % (hostTest))
 
     if type (multiCheck) is dict:
     	for activeInput in multiCheck:
