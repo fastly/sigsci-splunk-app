@@ -1,16 +1,10 @@
-
 # encoding = utf-8
-
-import os
-import sys
 import time
-#import datetime
 from datetime import datetime, timedelta
 import json
 import calendar
 import requests
 from timeit import default_timer as timer
-from decimal import Decimal
 
 '''
     IMPORTANT
@@ -19,33 +13,40 @@ from decimal import Decimal
     This file is generated only once when creating
     the modular input.
 '''
+
+
 def validate_input(helper, definition):
-    """Implement your own validation logic to validate the input stanza configurations"""
+
     # This example accesses the modular input variable
     # site = definition.parameters.get('site', None)
     pass
 
+
 def collect_events(helper, inputs, ew):
     """Implement your data collection logic here"""
     start = timer()
-    loglevel = helper.get_log_level()
+    # loglevel = helper.get_log_level()
     # Proxy setting configuration
-    proxy_settings = helper.get_proxy()
+    # proxy_settings = helper.get_proxy()
 
-    #Global variable configuration
+    # Global variable configuration
     email = helper.get_global_setting("email")
     password = helper.get_global_setting("password")
-    #site_name = helper.get_global_setting('site')
+    apitoken = helper.get_global_setting("apitoken")
     corp_name = helper.get_global_setting("corp")
-    
+
     api_host = 'https://dashboard.signalsciences.net'
     helper.log_info("email: %s" % email)
     helper.log_info("corp: %s" % corp_name)
 
+    pythonRequestsVersion = requests.__version__
+    userAgentVersion = "1.0.14"
+    userAgentString = "SigSci-Splunk-TA-Events/%s (PythonRequests %s)" \
+        % (userAgentVersion, pythonRequestsVersion)
 
-    #Definition for error handling on the response code
-
-    def checkResponse(code, responseText, curSite=None, from_time=None, until_time=None):
+    # Definition for error handling on the response code
+    def checkResponse(code, responseText, curSite=None,
+                      from_time=None, until_time=None):
         site_name = curSite
         if code == 400:
             if "Rate limit exceeded" in responseText:
@@ -60,7 +61,8 @@ def collect_events(helper, inputs, ew):
                 helper.log_error('SiteName: %s' % site_name)
                 return("bad-request")
         elif code == 500:
-            helper.log_error("Caused an Internal Server error (ResponseCode: %s)" % (code))
+            helper.log_error(
+                "Caused an Internal Server error (ResponseCode: %s)" % (code))
             helper.log_error("ResponseError: %s" % responseText)
             helper.log_error('from: %s' % from_time)
             helper.log_error('until: %s' % until_time)
@@ -69,13 +71,16 @@ def collect_events(helper, inputs, ew):
             helper.log_error('SiteName: %s' % site_name)
             return("internal-error")
         elif code == 401:
-            helper.log_error("Unauthorized, likely bad credentials or site configuration, or lack of permissions (ResponseCode: %s)" % (code))
+            helper.log_error(
+                "Unauthorized, likely bad credentials or site configuration," +
+                " or lack of permissions (ResponseCode: %s)" % (code))
             helper.log_error("ResponseError: %s" % responseText)
             helper.log_error('email: %s' % email)
             helper.log_error('Corp: %s' % corp_name)
             helper.log_error('SiteName: %s' % site_name)
             return("unauthorized")
-        elif code >= 400 and code <= 599 and code != 400 and code != 500 and code != 401:
+        elif code >= 400 and code <= 599 and code != 400 \
+                and code != 500 and code != 401:
             helper.log_error("ResponseError: %s" % responseText)
             helper.log_error('from: %s' % from_time)
             helper.log_error('until: %s' % until_time)
@@ -91,11 +96,12 @@ def collect_events(helper, inputs, ew):
         # Authenticate
         authUrl = api_host + '/api/v0/auth'
         authHeader = {
-            "User-Agent":"SigSci-Splunk-TA-Events/1.11 (Python 2.7)"
+            "User-Agent": userAgentString
         }
         auth = requests.post(
             authUrl,
-            data = {"email": email, "password": password}, headers=authHeader
+            data={"email": email, "password": password},
+            headers=authHeader
         )
 
         authCode = auth.status_code
@@ -119,16 +125,16 @@ def collect_events(helper, inputs, ew):
 
     def getEventData(url, headers):
         method = "GET"
-        response_raw = helper.send_http_request(url, method, parameters=None, payload=None,
-                              headers=headers, cookies=None, verify=True, cert=None, timeout=None, use_proxy=True)
+        response_raw = \
+            helper.send_http_request(url, method, parameters=None,
+                                     payload=None, headers=headers,
+                                     cookies=None, verify=True, cert=None,
+                                     timeout=None, use_proxy=True)
         responseCode = response_raw.status_code
         responseError = response_raw.text
         return(response_raw, responseCode, responseError)
 
-
-    def pullEvents (curSite, delta, token, key=None):
-        # Calculate UTC timestamps for the previous full hour
-        # E.g. if now is 9:05 AM UTC, the timestamps will be 8:00 AM and 9:00 AM
+    def pullEvents(curSite, delta, token, key=None, apiMode=None):
         site_name = curSite
         until_time = datetime.utcnow() - timedelta(minutes=5)
         until_time = until_time.replace(second=0, microsecond=0)
@@ -140,14 +146,23 @@ def collect_events(helper, inputs, ew):
         helper.log_info("From: %s\nUntil:%s" % (from_time, until_time))
 
         # Loop across all the data and output it in one big JSON object
-        headers = {
-            'Content-type': 'application/json',
-            'Authorization': 'Bearer %s' % token,
-            'User-Agent': 'SigSci-Splunk-TA-Events/1.11 (Python 2.7)'
-        }
+        if apiMode == "apitoken":
+            headers = {
+                'Content-type': 'application/json',
+                'x-api-user': email,
+                'x-api-token': apitoken,
+                'User-Agent': userAgentString
+            }
+        else:
+            headers = {
+                'Content-type': 'application/json',
+                'Authorization': 'Bearer %s' % token,
+                'User-Agent': userAgentString
+            }
 
-        #url = api_host + ('/api/v0/corps/%s/sites/%s/feed/requests?from=%s&until=%s' % (corp_name, site_name, from_time, until_time))
-        url = api_host + ('/api/v0/corps/%s/sites/%s/analytics/events?from=%s&until=%s' % (corp_name, site_name, from_time, until_time))
+        url = api_host + \
+            ('/api/v0/corps/%s/sites/%s/analytics/events?from=%s&until=%s'
+                % (corp_name, site_name, from_time, until_time))
         loop = True
 
         counter = 1
@@ -157,14 +172,19 @@ def collect_events(helper, inputs, ew):
             helper.log_info("Processing page %s" % counter)
             startPage = timer()
 
-            responseResult, responseCode, ResponseError = getEventData(url, headers)
-            sigSciRequestCheck = checkResponse(responseCode, ResponseError, curSite=site_name, from_time=from_time,until_time=until_time)
+            responseResult, responseCode, ResponseError = \
+                getEventData(url, headers)
+            sigSciRequestCheck = checkResponse(responseCode, ResponseError,
+                                               curSite=site_name,
+                                               from_time=from_time,
+                                               until_time=until_time)
 
             if sigSciRequestCheck is None or sigSciRequestCheck != "success":
                 helper.log_error("Failed to pull results")
                 helper.log_error(sigSciRequestCheck)
                 exit()
-            elif sigSciRequestCheck is not None and sigSciRequestCheck == "rate-limit":
+            elif sigSciRequestCheck is not None and\
+                    sigSciRequestCheck == "rate-limit":
                 helper.log_error("SigSci Rate Limit hit")
                 helper.log_error("Retrying in 10 seconds")
                 time.sleep(10)
@@ -173,8 +193,8 @@ def collect_events(helper, inputs, ew):
                 response = json.loads(responseResult.text)
 
             curPageNumRequests = len(response['data'])
-            helper.log_info("Number of Events for Page: %s" % curPageNumRequests)
-
+            helper.log_info("Number of Events for Page: %s"
+                            % curPageNumRequests)
 
             for request in response['data']:
                 data = json.dumps(request)
@@ -190,7 +210,8 @@ def collect_events(helper, inputs, ew):
                     endPage = timer()
                     pageTime = endPage - startPage
                     pageTimeResult = round(pageTime, 2)
-                    helper.log_info("Total Page Time: %s seconds" % pageTimeResult)
+                    helper.log_info("Total Page Time: %s seconds"
+                                    % pageTimeResult)
                 else:
                     url = api_host + next_url
                     helper.log_info("Finished Page %s" % counter)
@@ -198,7 +219,8 @@ def collect_events(helper, inputs, ew):
                     endPage = timer()
                     pageTime = endPage - startPage
                     pageTimeResult = round(pageTime, 2)
-                    helper.log_info("Total Page Time: %s seconds" % pageTimeResult)
+                    helper.log_info("Total Page Time: %s seconds"
+                                    % pageTimeResult)
             else:
                 loop = False
 
@@ -208,13 +230,20 @@ def collect_events(helper, inputs, ew):
 
         for curEvent in allRequests:
             if key is None:
-                    event = helper.new_event(source=helper.get_input_name(), index=helper.get_output_index(), sourcetype=helper.get_sourcetype(), data=curEvent)
+                    event = \
+                        helper.new_event(source=helper.get_input_name(),
+                                         index=helper.get_output_index(),
+                                         sourcetype=helper.get_sourcetype(),
+                                         data=curEvent)
             else:
                 indexes = helper.get_output_index()
                 curIndex = indexes[key]
                 types = helper.get_sourcetype()
                 curType = types[key]
-                event = helper.new_event(source=helper.get_input_name(), index=curIndex, sourcetype=curType, data=curEvent)
+                event = \
+                    helper.new_event(source=helper.get_input_name(),
+                                     index=curIndex,
+                                     sourcetype=curType, data=curEvent)
 
             try:
                 ew.write_event(event)
@@ -223,31 +252,45 @@ def collect_events(helper, inputs, ew):
         writeEnd = timer()
         writeTime = writeEnd - writeStart
         writeTimeResult = round(writeTime, 2)
-        helper.log_info("Total Event Output Time: %s seconds" % writeTimeResult)
+        helper.log_info("Total Event Output Time: %s seconds"
+                        % writeTimeResult)
 
     multiCheck = helper.get_arg('delta')
     hostTest = helper.get_arg('Host')
     helper.log_info("Host: %s" % (hostTest))
-    sigsciToken = sigsciAuth()
 
-    if type (multiCheck) is dict:
+    if apitoken is not None and apitoken != "":
+        authMode = "apitoken"
+        helper.log_info("AuthMode: API Token")
+    else:
+        authMode = "password"
+        helper.log_info("AuthMode: Password")
+        sigsciToken = sigsciAuth()
+
+    if type(multiCheck) is dict:
         for activeInput in multiCheck:
             delta = int(multiCheck[activeInput])
             allSites = helper.get_arg('site')
             site = allSites[activeInput]
             helper.log_info("site: %s" % site)
-            pullEvents(key=activeInput, curSite=site, delta=delta, token=sigsciToken)
+            if authMode == "apitoken":
+                pullEvents(key=activeInput, curSite=site,
+                           delta=delta, token=apitoken, apiMode=authMode)
+            else:
+                pullEvents(key=activeInput, curSite=site,
+                           delta=delta, token=sigsciToken)
             helper.log_info("Finished Pulling Events for %s" % site)
-    
     else:
         delta = int(helper.get_arg('delta'))
-    	site = helper.get_arg('site')
+        site = helper.get_arg('site')
         helper.log_info("site: %s" % site)
-        pullEvents(site, delta, token=sigsciToken)
+        if authMode == "apitoken":
+            pullEvents(site, delta, token=apitoken, apiMode=authMode)
+        else:
+            pullEvents(site, delta, token=sigsciToken)
         helper.log_info("Finished Pulling Events for %s" % site)
 
     end = timer()
     totalTime = end - start
     timeResult = round(totalTime, 2)
     helper.log_info("Total Script Time: %s seconds" % timeResult)
-

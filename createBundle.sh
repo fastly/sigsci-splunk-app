@@ -43,6 +43,9 @@ echo "New Version: $NEWVER"
 
 sed -i -- "s/version\s=\s$CURVER/version = $NEWVER/" ./$APPFOLDER/default/app.conf
 sed -i -- "s/\"version\": \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/\"version\": \"$NEWVER\"/" ./$APPFOLDER/app.manifest 
+sed -i -- "s/userAgentVersion = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/userAgentVersion = \"$NEWVER\"/" ./$APPFOLDER/bin/input_module_SigsciEvent.py
+sed -i -- "s/userAgentVersion = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/userAgentVersion = \"$NEWVER\"/" ./$APPFOLDER/bin/input_module_SigsciRequests.py
 rm -rf $TARNAME
 tar -czf $TARNAME $APPFOLDER
+
 splunk-appinspect inspect $TARNAME

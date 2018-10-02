@@ -30,7 +30,7 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.SingleInstanceModInput)
         scheme.description = ("")
         scheme.use_external_validation = True
         scheme.streaming_mode_xml = True
-        scheme.use_single_instance = True
+        scheme.use_single_instance = False
 
         scheme.add_argument(smi.Argument("name", title="Name",
                                          description="",

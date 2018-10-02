@@ -39,6 +39,19 @@ function return_page() {
                         '</div>' +
                     '</fieldset>' +
                 '</div>' +
+                '<div class="fieldsetWrapper" id="apitoken_SettingId">' +
+                    '<fieldset>' +
+                        '<legend>API Token</legend>' +
+                        '<div class="widget" style="display: block;">' +
+                            '<label></label>' +
+                            '<div>' +
+                                '<input class="index_input" type="password" id="apitoken_id">' +
+                            '</div>' +
+                            '<div class="widgeterror" style="display: none;">' +
+                            '</div>' +
+                        '</div>' +
+                    '</fieldset>' +
+                '</div>' +
                 '<div class="fieldsetWrapper" id="corp_SettingId">' +
                     '<fieldset>' +
                         '<legend>SigSci Corp Name</legend>' +
@@ -162,6 +175,9 @@ function return_cred_form() {
         if (settings.customized_settings["password"]){
             $("#password_id").val(settings["customized_settings"]["password"]["password"]);
         }
+        if (settings.customized_settings["apitoken"]){
+            $("#apitoken_id").val(settings["customized_settings"]["apitoken"]["password"]);
+        }
         if (settings.customized_settings["corp"]){
             $("#corp_id").val(settings["customized_settings"]["corp"]["content"]);
         }
@@ -187,6 +203,10 @@ function return_cred_form() {
             "password": {
                 "type": "password",
                 "password": $("#password_id").val()
+            },
+            "apitoken": {
+                "type": "password",
+                "password": $("#apitoken_id").val()
             },
             "corp": {
                 "type": "text",
