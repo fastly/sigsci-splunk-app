@@ -4,7 +4,7 @@ This app for Splunk connects to the Signal Sciences API in order to pull data in
 
 ## Signal Sciences REST API Endpoints used
 
-1. https://dashboard.signalsciences.net/api/v0/auth
+1. https://dashboard.signalsciences.net/api/v0/auth *(Only used if using Password authentication instead of APITokens)*
 2. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/analytics/events
 2. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/feed/requests
 
