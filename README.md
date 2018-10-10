@@ -50,11 +50,16 @@ Once the Splunk App has been installed you will need to configure the shared set
 
     ![screen4](screenshots/screen4.jpg "SigSci Events Page")
 
+    **Note** _The Technical Adapter does not create an index by default. The Data inputs do default to an index named `sigsci`. If this index does not exist you will either need to create it or in the more settings of the data inputs specify an index that does exist._
+
 7. Go back to the Settings -> Data Input
 8. Select the SigSci Request Data input
-9. There will be a default event called sigsci-request. You can modify this or create a new entry for each dashboard site you want to monitor in your Signal Science corp. The Time Delta is in minutes and isn't recommended to do more than 1 hour. Generally 5 minutes is a good starting interval.
+9. There will be a default event called sigsci-request. You can modify this or create a new entry for each dashboard site you want to monitor in your Signal Science corp. The Time Delta is in minutes and isn't recommended to do more than 1 hour. Generally 5 minutes is a good starting interval. 
 
     ![screen5](screenshots/screen5.jpg "SigSci Requests Page")
+
+	**Note** _The Technical Adapter does not create an index by default. The Data inputs do default to an index named `sigsci`. If this index does not exist you will either need to create it or in the more settings of the data inputs specify an index that does exist._
+
  
 10. Once you click save you can go to Apps -> Search & Reporting
 11. To do an initial search you can search for `index=sigsci`
