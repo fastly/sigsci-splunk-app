@@ -16,7 +16,7 @@ The Technical Adapter does not create an index by default. The Data inputs do de
 
 ## Where to get API Information?
 
-The Corp name and Site names are in the URL for the dashboard. For example if we had a API name of `foo` for the corp and a dashboard api name of `bar` we would see it like the following:
+The Corp name and Dashboard Site names are in the URL for the dashboard. For example if we had a Corp Name of `foo` and a Dashboard Site name of `bar` we would see it like the following:
 
 `https://dashboard.signalsciences.net/corps/foo/sites/bar`
 
@@ -26,7 +26,7 @@ You can also get the API Name for Dashboard Sites from the Manage Sites menu if 
 
 In version 1.0.17 you can use API Tokens instead of using a password. If both the password and API Token fields are filled in the App will use the API Token field and the password will be ignored. One of these are required.
 
-Information about API Tokens can be found at https://docs.signalsciences.net/using-signal-sciences/using-our-api/#creating-personal-api-tokens
+Information about API Tokens can be found at https://docs.signalsciences.net/developer/using-our-api/
 
 ## Configuration
 
