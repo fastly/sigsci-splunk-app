@@ -5,17 +5,17 @@
     "id": {
       "group": null,
       "name": "sigsci_TA_for_splunk",
-      "version": "1.0.17"
+      "version": "1.0.18"
     },
     "author": [
       {
-        "name": "douglas@dactbc.com",
+        "name": "Douglas Coburn",
         "email": null,
         "company": null
       }
     ],
     "releaseDate": null,
-    "description": "This splunk app will connect to the Signal Sciences API to pull the requests, activities, and event data to enrich the splunk data from other systems.",
+    "description": "For users of Signal Sciences who would like to enrich their Splunk data with information from Signal Sciences. This app with simple configuration enabled the importing of Events, Activity, and raw request information to Splunk.This is an open source project, no support provided, public repository available and installation documentation can be found a https://github.com/dacoburn/sigsci-splunk-app . The best way to report issues with the App is to create an Issue on the github page so that it can be tracked.",
     "classification": {
       "intendedAudience": null,
       "categories": [],
@@ -41,6 +41,8 @@
   "dependencies": {
   },
   "tasks": [],
+  "inputGroups": {
+  },
   "incompatibleApps": {
   },
   "platformRequirements": {

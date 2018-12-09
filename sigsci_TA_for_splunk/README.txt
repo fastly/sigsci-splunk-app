@@ -1,3 +1,1 @@
-Signal Sciences App for Splunk version 1.0.3
-
-For documentation, see: https://github.com/dacoburn/sigsci-splunk-app
+This is an add-on powered by the Splunk Add-on Builder.

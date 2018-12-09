@@ -1,33 +1,39 @@
+
 # encoding = utf-8
+
+import os
+import sys
 import time
-# import datetime
 from datetime import datetime, timedelta
 import json
 import calendar
 import requests
 from timeit import default_timer as timer
-# from decimal import Decimal
 
 '''
     IMPORTANT
     Edit only the validate_input and collect_events functions.
     Do not edit any other part in this file.
-    This file is generated only once when creating
-    the modular input.
+    This file is generated only once when creating the modular input.
 '''
 
 
+def use_single_instance_mode():
+    return True
+    
+
 def validate_input(helper, definition):
+    """Implement your own validation logic to validate the input stanza configurations"""
     # This example accesses the modular input variable
+    # delta = definition.parameters.get('delta', None)
     # site = definition.parameters.get('site', None)
     pass
 
-
-def collect_events(helper, inputs, ew):
+def collect_events(helper, ew):
     start = timer()
     # loglevel = helper.get_log_level()
     # Proxy setting configuration
-    # proxy_settings = helper.get_proxy()
+    proxy_settings = helper.get_proxy()
     # User credentials
 
     # Global variable configuration
@@ -41,7 +47,7 @@ def collect_events(helper, inputs, ew):
     helper.log_info("corp: %s" % corp_name)
 
     pythonRequestsVersion = requests.__version__
-    userAgentVersion = "1.0.17"
+    userAgentVersion = "1.0.18"
     userAgentString = "SigSci-Splunk-TA-Requests/%s (PythonRequests %s)" \
         % (userAgentVersion, pythonRequestsVersion)
 
@@ -248,13 +254,24 @@ def collect_events(helper, inputs, ew):
             else:
                 loop = False
 
+        inputNames = helper.get_input_stanza_names()
+        singleName = ""
+        
+        if len(inputNames) > 1:
+            helper.log_info("Single instance mode")
+            exit(1)
+        else:
+            helper.log_info("Multi instance mode")
+            for curName in inputNames:
+                singleName = curName
+                
         totalRequests = len(allRequests)
         helper.log_info("Total Requests Pulled: %s" % totalRequests)
         writeStart = timer()
         for curEvent in allRequests:
             if key is None:
                 event = \
-                    helper.new_event(source=helper.get_input_name(),
+                    helper.new_event(source=singleName,
                                      index=helper.get_output_index(),
                                      sourcetype=helper.get_sourcetype(),
                                      data=curEvent)
@@ -264,7 +281,7 @@ def collect_events(helper, inputs, ew):
                 types = helper.get_sourcetype()
                 curType = types[key]
                 event = \
-                    helper.new_event(source=helper.get_input_name(),
+                    helper.new_event(source=singleName,
                                      index=curIndex, sourcetype=curType,
                                      data=curEvent)
 
