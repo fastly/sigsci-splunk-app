@@ -63,6 +63,7 @@ Once the Splunk App has been installed you will need to configure the shared set
     * **Delta:** This is the time period, in minutes, that the script will pull. This should generally be left at the default which is 5 and matches the interval for the input.
     * **Dashboared Site Name:** This is the API Name for the dashboard it could be something like `app-prod`
 
+   ![04-Fill_Input_settings](screenshots/04-Fill_Input_settings.png "Fill in Input Configuration")
 
 ## Configuration 1.0.17 or lower
 
