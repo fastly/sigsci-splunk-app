@@ -15,6 +15,7 @@ sudo rm -rf $SPLUNKAPP/$APPFOLDER/default.old*
 #Copy source from splunk install
 sudo cp -R  $SPLUNKAPP/$APPFOLDER/ ./$APPFOLDER
 sudo rm -rf $APPFOLDER/metadata/local.meta
+sudo rm -rf $APPFOLDER/test.xml
 sudo chown -R $MYUSER:$MYUSER ./
 
 
@@ -49,4 +50,9 @@ sed -i -- "s/^install_source_checksum\s=\s.*$//" ./$APPFOLDER/default/app.conf
 rm -rf $TARNAME
 tar -czf $TARNAME $APPFOLDER
 
-splunk-appinspect inspect $TARNAME
+APPVERSION=`splunk-appinspect list version`
+echo "$APPVERSION"
+echo "Running Cloud Certification Checks"
+splunk-appinspect inspect $TARNAME --mode precert --included-tags cloud > cloud.log
+echo "Running All Certification Checks"
+splunk-appinspect inspect $TARNAME --mode precert > all_tests.log

@@ -18,8 +18,8 @@ from timeit import default_timer as timer
 '''
 
 
-def use_single_instance_mode():
-    return True
+#def use_single_instance_mode():
+#    return True
     
 
 def validate_input(helper, definition):
@@ -47,7 +47,7 @@ def collect_events(helper, ew):
     helper.log_info("corp: %s" % corp_name)
 
     pythonRequestsVersion = requests.__version__
-    userAgentVersion = "1.0.18"
+    userAgentVersion = "1.0.21"
     userAgentString = "SigSci-Splunk-TA-Requests/%s (PythonRequests %s)" \
         % (userAgentVersion, pythonRequestsVersion)
 
@@ -153,6 +153,21 @@ def collect_events(helper, ew):
         helper.log_info("SiteName: %s" % site_name)
         helper.log_info("From: %s\nUntil:%s" % (from_time, until_time))
 
+        inputNames = helper.get_input_stanza_names()
+        singleName = ""
+
+	if type(inputNames) is dict and inputNames > 1:
+	    helper.log_info("Multi instance mode")
+            for curName in inputNames:
+                singleName = curName
+        else:
+            helper.log_info("Single instance mode")
+            helper.log_info("Inputs: %s" % (inputNames))
+            helper.log_info("Inputs Num: %s" % len(inputNames))
+            singleName = inputNames
+
+
+
         # Loop across all the data and output it in one big JSON object
         if apiMode == "apitoken":
             headers = {
@@ -254,17 +269,6 @@ def collect_events(helper, ew):
             else:
                 loop = False
 
-        inputNames = helper.get_input_stanza_names()
-        singleName = ""
-        
-        if len(inputNames) > 1:
-            helper.log_info("Single instance mode")
-            exit(1)
-        else:
-            helper.log_info("Multi instance mode")
-            for curName in inputNames:
-                singleName = curName
-                
         totalRequests = len(allRequests)
         helper.log_info("Total Requests Pulled: %s" % totalRequests)
         writeStart = timer()

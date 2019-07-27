@@ -54,6 +54,11 @@ class ModInputSigsciRequests(modinput_wrapper.base_modinput.BaseModInput):
                                          description="This is the API Name of the Dashboard Site",
                                          required_on_create=True,
                                          required_on_edit=False))
+#        scheme.add_argument(smi.Argument("interval", title="Interval",
+#                                         description="This is the interval to run the script, should be the same as the Delta",
+#                                         required_on_create=True,
+#                                         required_on_edit=True))
+
         return scheme
 
     def get_app_name(self):
