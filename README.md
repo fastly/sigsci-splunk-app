@@ -64,6 +64,7 @@ Once the Splunk App has been installed you will need to configure the shared set
     * **Interval:** This is the interval frequency the script runs in, in minutes. This should be the same as the delta and is recommended to leave at 300 (5 minutes)
     * **Dashboared Site Name:** This is the API Name for the dashboard it could be something like `app-prod`
 
+   ![04-Fill_Input_settings](screenshots/04-Fill_Input_settings.png "Fill in Input Configuration")
 
 ## Configuration 1.0.17 or lower
 
