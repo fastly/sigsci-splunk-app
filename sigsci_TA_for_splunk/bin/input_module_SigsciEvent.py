@@ -46,7 +46,7 @@ def collect_events(helper, ew):
     helper.log_info("corp: %s" % corp_name)
 
     pythonRequestsVersion = requests.__version__
-    userAgentVersion = "1.0.21"
+    userAgentVersion = "1.0.23"
     userAgentString = "SigSci-Splunk-TA-Events/%s (PythonRequests %s)" \
         % (userAgentVersion, pythonRequestsVersion)
 
