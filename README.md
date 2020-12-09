@@ -7,6 +7,7 @@ This app for Splunk connects to the Signal Sciences API in order to pull data in
 1. https://dashboard.signalsciences.net/api/v0/auth *(Only used if using Password authentication instead of APITokens)*
 2. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/analytics/events
 2. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/feed/requests
+3. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/activity
 
 
 ## Where to get API Information?
