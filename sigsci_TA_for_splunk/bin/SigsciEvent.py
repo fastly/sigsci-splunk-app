@@ -33,7 +33,7 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.BaseModInput):
     def get_scheme(self):
         """overloaded splunklib modularinput method"""
         scheme = super(ModInputSigsciEvent, self).get_scheme()
-        scheme.title = ("Sigsci Event")
+        scheme.title = ("SigSci Events")
         scheme.description = ("Go to the add-on\'s configuration UI and configure modular inputs under the Inputs menu.")
         scheme.use_external_validation = True
         scheme.streaming_mode_xml = True
@@ -46,20 +46,14 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.BaseModInput):
         For customized inputs, hard code the arguments here to hide argument detail from users.
         For other input types, arguments should be get from input_module. Defining new input types could be easier.
         """
-        scheme.add_argument(smi.Argument("delta", title="Delta",
-                                         description="Time frame to pull data from Signal Sciences",
+        scheme.add_argument(smi.Argument("site", title="Site API Name",
+                                         description="The API Name for the Signal Sciences Dashboard Site.",
                                          required_on_create=True,
                                          required_on_edit=False))
-        scheme.add_argument(smi.Argument("site", title="Dashboard Site Name",
-                                         description="API Dashboard Site Name, this IS NOT a http url",
-                                         required_on_create=True,
+        scheme.add_argument(smi.Argument("delta", title="Delta (Minutes)",
+                                         description="",
+                                         required_on_create=False,
                                          required_on_edit=False))
-	
-#        scheme.add_argument(smi.Argument("interval", title="Interval",
-#                                         description="This is the interval to run the script, should be the same as the Delta",
-#                                         required_on_create=True,
-#                                         required_on_edit=True))
-
         return scheme
 
     def get_app_name(self):

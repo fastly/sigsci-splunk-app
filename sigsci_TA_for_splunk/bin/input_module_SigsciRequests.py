@@ -47,7 +47,7 @@ def collect_events(helper, ew):
     helper.log_info("corp: %s" % corp_name)
 
     pythonRequestsVersion = requests.__version__
-    userAgentVersion = "1.0.23"
+    userAgentVersion = "1.0.25"
     userAgentString = "SigSci-Splunk-TA-Requests/%s (PythonRequests %s)" \
         % (userAgentVersion, pythonRequestsVersion)
 
@@ -156,8 +156,8 @@ def collect_events(helper, ew):
         inputNames = helper.get_input_stanza_names()
         singleName = ""
 
-	if type(inputNames) is dict and inputNames > 1:
-	    helper.log_info("Multi instance mode")
+        if type(inputNames) is dict and inputNames > 1:
+            helper.log_info("Multi instance mode")
             for curName in inputNames:
                 singleName = curName
         else:

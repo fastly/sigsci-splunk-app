@@ -46,7 +46,7 @@ def collect_events(helper, ew):
     helper.log_info("corp: %s" % corp_name)
 
     pythonRequestsVersion = requests.__version__
-    userAgentVersion = "1.0.23"
+    userAgentVersion = "1.0.25"
     userAgentString = "SigSci-Splunk-TA-Events/%s (PythonRequests %s)" \
         % (userAgentVersion, pythonRequestsVersion)
 
@@ -181,7 +181,7 @@ def collect_events(helper, ew):
             }
 
         url = api_host + \
-            ('/api/v0/corps/%s/sites/%s/analytics/events?from=%s&until=%s'
+            ('/api/v0/corps/%s/sites/%s/activity?from=%s&until=%s'
                 % (corp_name, site_name, from_time, until_time))
         loop = True
 

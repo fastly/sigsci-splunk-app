@@ -12,6 +12,5 @@ loglevel =
 
 [additional_parameters]
 email = 
-password = 
 apitoken = 
 corp = 
