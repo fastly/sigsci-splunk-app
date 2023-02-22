@@ -2,3 +2,4 @@
 *.tar
 .DS_Store
 *.log
+.idea

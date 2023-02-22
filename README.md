@@ -4,8 +4,11 @@ This app for Splunk connects to the Signal Sciences API in order to pull data in
 
 ## Signal Sciences REST API Endpoints used
 
-1. https://dashboard.signalsciences.net/api/v0/auth *(Only used if using Password authentication instead of APITokens)*
-2. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/analytics/events
+The latest version **only** supports using API Tokens. 
+
+Information about API Tokens can be found at https://docs.signalsciences.net/developer/using-our-api/
+
+1. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/analytics/events
 2. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/feed/requests
 3. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/activity
 
@@ -14,38 +17,33 @@ This app for Splunk connects to the Signal Sciences API in order to pull data in
 
 The Corp name and Dashboard Site names are in the URL for the dashboard. For example if we had a Corp Name of `foo` and a Dashboard Site name of `bar` we would see it like the following:
 
-`https://dashboard.signalsciences.net/corps/foo/sites/bar`
+`https://dashboard.signalsciences.net/corps/{CORP_NAME}/sites/{site_api_name}`
 
 You can also get the API Name for Dashboard Sites from the Manage Sites menu if you are a Corp Owner or Corp Admin. When logging into the Signal Sciences Dashboard you can go to `Corp Tools` -> `Manage Sites` and the lowercase name under the display name is the API Name.
 
 ![screen1](screenshots/screen8.jpg "API Name")
 
-In versions 1.0.17+ you can use API Tokens instead of using a password. If both the password and API Token fields are filled in the App will use the API Token field and the password will be ignored. One of these are required.
-
-Information about API Tokens can be found at https://docs.signalsciences.net/developer/using-our-api/
 
 ## Indexes
 
-The Technical Adapter does not create an index by default. The Data inputs do default to an index named `sigsci`. If this index does not exist you will either need to create it or in the more settings of the data inputs specify an index that does exist.
+The Technical Adapter does not create an index by default.
 
-![screen1](screenshots/screen7.jpg "More Settings")
 
-## Configuration 1.0.18 or higher
+## Configuration 1.0.27 or higher
 
 Once the Splunk App has been installed you will need to configure the shared settings and then the Modular Data inputs.
 
 1. Log into your Splunk Web Portal
 2. Select the sigsci_TA_for_splunk
 
-   ![01-Select_Sigsci_App](screenshots/01-Select_Sigsci_App.png "Select Sigsci App")
+   ![01-Select_Sigsci_App](screenshots/01-Select_Sigsci_App.png "Select SigSci App")
     
 3. Click on "Configuration"
 4. Click on "Add-on Settings"
 5. Fill in the Signal Sciences user (Email Address), Password or API Token, and the Singal Sicences corp name.
 
    * **Email Address:** This is the username/email address for the Signal Sciences dashboard
-   * **Password:** This is only required if you are **not using** an API Token
-   * **API Token:** Required if you are **not using** your password
+   * **API Token:** This is required and should be a token associated with your e-mail address
    * **Corp Name** This is the API id for the corp, often if your Display Name for the corp is "Corp ABC" the API Name might be something like `corp-abc`
 
    ![02-Select_Add-on_Settings](screenshots/02-Select_Add-on_Settings.png "Select Add-on Configuration")
@@ -61,47 +59,94 @@ Once the Splunk App has been installed you will need to configure the shared set
 
     * **Name:** This is the unique name you would like to give the input
     * **index:** This can be any index you recommend, I generally will do a custom index that I create called `sigsci`
-    * **Delta:** This is the time period, in minutes, that the script will pull. This should generally be left at the default which is 5 and matches the interval for the input. This is in minutes 5 = 300 seconds.
-    * **Interval:** This is the interval frequency the script runs in, in minutes. This should be the same as the delta and is recommended to leave at 300 (5 minutes)
-    * **Dashboared Site Name:** This is the API Name for the dashboard it could be something like `app-prod`
+    * **Time Delta in Seconds:** This is the time period, in seconds, that the script will pull. This should generally be left at the default which is 300 and matches the interval for the input.
+    * **Interval:** This is the interval frequency the script runs in, in seconds. This should be the same as the delta and is recommended to leave at 300
+    * **Site API Name:** This is the API Name for the dashboard it could be something like `app-prod`
 
    ![04-Fill_Input_settings](screenshots/04-Fill_Input_settings.png "Fill in Input Configuration")
 
-## Configuration 1.0.17 or lower
+## Updating the App
 
-Once the Splunk App has been installed you will need to configure the shared settings and then the Modular Data inputs.
+The new process for updating the App is to:
 
-1. Log into the Splunk Web Portal and go to the Apps -> Manage Apps section
-2. Select Setup for the sigsci_TA_for_splunk app
+1. Install the Splunk App builder
+2. Select the App Builder
+3. Click "Import Project"
+4. Use the latest `sigsci_TA_for_splunk_*_export.tgz` file in ![export_files](app_builder_import_file) "Export Folder"
+    ![Import App](screenshots/update-01-import-app.png) "Import the Splunk App"
 
-   ![screen1](screenshots/screen1.jpg "App Management")
+### General App Properties
 
-3. Specify the Signal Sciences user (Email Address), Password, and your Signal Sciences corp name
+1. Open the Splunk App Builder
+2. Click on properties
+   ![Open App Properties](screenshots/update-02-app-tile.png) "Select app properties"
+3. Make any changes and hit change
+    _IMPORTANT NOTE: changing the Add-on Folder Name could cause users to need to install the app fresh instead of upgrading_
+    ![App Properties](screenshots/update-03-app-properties.png) "Update App Properties"
 
-   ![screen2](screenshots/screen2.jpg "TA Config")
+### App Input Configuration
 
-4. After clicking save got to Settings -> Data Inputs
+1. Open the Splunk App Builder
+2. Click on the App Tile
+3. Click on Configure Data Collection
+4. Click on edit for the desired input
 
-   ![screen3](screenshots/screen3.jpg "Data Inputs Page")
+**Data Input Properties**
+These are general properties for the input
 
-5. First Select the SigSci Events Data input. There will be a default event called sigsci-event. You can modify this or create a new entry for each dashboard site you want to monitor in your Signal Science corp.
-6. After saving click enable for the SigSci Event entry
+![Data Properties](screenshots/update-05a-data-input-properties.png) "Data Properties"
 
-   ![screen4](screenshots/screen4.jpg "SigSci Events Page")
+| Property            | Description                                                           |
+|---------------------|-----------------------------------------------------------------------|
+| Source Type Name    | The name of the input that will be used in searches. Can't be changed |
+| Input display name  | The Display Name for the input                                        | 
+| Input Name          | The API Name for the input                                            |
+| Description         | The description is optional                                           |
+| Collection Interval | The frequency the Modular Input is executed by the Splunk Server      |
+   
+**Data Input Parameters**
+These are properties for the specific Modular Input
 
-    **Note** _The Technical Adapter does not create an index by default. The Data inputs do default to an index named `sigsci`. If this index does not exist you will either need to create it or in the more settings of the data inputs specify an index that does exist._
+![Data Parameters](screenshots/update-05b-data-input-parameters.png) "Data Parameters"
 
-7. Go back to the Settings -> Data Input
-8. Select the SigSci Request Data input
-9. There will be a default event called sigsci-request. You can modify this or create a new entry for each dashboard site you want to monitor in your Signal Science corp. The Time Delta is in minutes and isn't recommended to do more than 1 hour. Generally 5 minutes is a good starting interval. 
+| Property      | Description                                                                                     |
+|---------------|-------------------------------------------------------------------------------------------------|
+| time_delta    | The time delta in seconds used by the modular input                                             |
+| site_api_name | For the non-corp API configurations (SigsciEvents and SigsciRequests) this is the Site API Name |
 
-    ![screen5](screenshots/screen5.jpg "SigSci Requests Page")
+**Add-on Setup Parameters** 
+These are the global properties shared between all of the input types
+![Global Properties](screenshots/update-05c-global-properties.png) "Global Properties"
 
-	**Note** _The Technical Adapter does not create an index by default. The Data inputs do default to an index named `sigsci`. If this index does not exist you will either need to create it or in the more settings of the data inputs specify an index that does exist._
+| Property      | Description                                    |
+|---------------|------------------------------------------------|
+| email         | The email for the API user to be used          |
+| corp_api_name | The API name for the corp to pull data from    |
+| api_token     | The API token for th account to pull data from |
 
- 
-10. Once you click save you can go to Apps -> Search & Reporting
-11. To do an initial search you can search for `index=sigsci`
+Once Finished click Save and Finish
 
-    ![screen6](screenshots/screen6.jpg "Search Results")
+### Manage Source Types
+The Manage source Types is used to configure how the input parses different properties of what is returned. This is configured to be JSON with specific criteria to find the timestamp.
+![Manage Source Types](screenshots/update-06-update-source-types-details.png) "Source Type Details"
 
+Once you are done updating click save
+
+## Exporting Splunk App Builder Package and Splunkbase Packages
+
+**Export App for using in a new Splunk App Builder**
+1. Open the Splunk App builder
+2. Click the properties for the Signal Sciences WAF TA
+3. Update the Version
+4. Save the changes
+5. Click Export. This file will be the new version of the `.tgz` file that you will need for importing on a new Splunk setup to use it in the App Builder
+
+**Export App to Submit to Splunk Base**
+1. Click Validate & Package
+2. Click Validate
+3. Once validation is completed click Download Package
+4. Log into Splunkbase
+5. Go to App Management
+6. Select the App
+7. Click New Version
+8. Upload the new `.spl` file

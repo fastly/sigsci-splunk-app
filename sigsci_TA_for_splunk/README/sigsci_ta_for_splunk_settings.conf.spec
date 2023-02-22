@@ -12,5 +12,5 @@ loglevel =
 
 [additional_parameters]
 email = 
-apitoken = 
-corp = 
+corp_api_name = 
+api_token = 

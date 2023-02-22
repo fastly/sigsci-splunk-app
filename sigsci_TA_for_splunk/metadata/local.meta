@@ -1,0 +1,48 @@
+[props/source%3A%3A...sigsci_ta_for_splunk%2A.log%2A]
+owner = admin
+version = 9.0.3
+modtime = 1675749202.338151000
+
+[passwords/credential%3A__REST_CREDENTIAL__%23sigsci_TA_for_splunk%23configs%2Fconf-sigsci_ta_for_splunk_settings%3Aadditional_parameters%60%60splunk_cred_sep%60%601%3A]
+owner = admin
+version = 9.0.3
+modtime = 1675750042.262017000
+
+[passwords/credential%3A__REST_CREDENTIAL__%23sigsci_TA_for_splunk%23configs%2Fconf-sigsci_ta_for_splunk_settings%3Aadditional_parameters%60%60splunk_cred_sep%60%602%3A]
+owner = admin
+version = 9.0.3
+modtime = 1675750042.305144000
+
+[sigsci_ta_for_splunk_settings/additional_parameters]
+version = 9.0.3
+modtime = 1675750042.347500000
+
+[inputs/SigsciActivity%3A%2F%2Fsigsciactivity]
+owner = admin
+version = 9.0.3
+modtime = 1675750084.239520000
+
+[inputs/SigsciRequests%3A%2F%2Fsplunk_demo_server_requests]
+owner = admin
+version = 9.0.3
+modtime = 1675750104.549497000
+
+[inputs/SigsciEvent%3A%2F%2Fsplunk_demo_server_event]
+owner = admin
+version = 9.0.3
+modtime = 1675750150.110977000
+
+[props/sigsci-requests]
+owner = admin
+version = 9.0.3
+modtime = 1675750292.930184000
+
+[props/sigsci-event]
+owner = admin
+version = 9.0.3
+modtime = 1675750326.855757000
+
+[props/sigsci-activity]
+owner = admin
+version = 9.0.3
+modtime = 1675750355.467117000
