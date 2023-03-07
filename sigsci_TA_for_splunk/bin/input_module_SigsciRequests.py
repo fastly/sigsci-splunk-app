@@ -1,14 +1,11 @@
-
 # encoding = utf-8
 
-import os
-import sys
 import time
 from datetime import datetime, timedelta
-import json
-import calendar
-import requests
 from timeit import default_timer as timer
+import requests
+import calendar
+import json
 
 '''
     IMPORTANT
@@ -18,325 +15,331 @@ from timeit import default_timer as timer
 '''
 
 
-#def use_single_instance_mode():
-#    return True
-    
+# def use_single_instance_mode():
+#     return True
+
 
 def validate_input(helper, definition):
-    """Implement your own validation logic to validate the input stanza configurations"""
     # This example accesses the modular input variable
-    # delta = definition.parameters.get('delta', None)
-    # site = definition.parameters.get('site', None)
+    site_name = definition.parameters.get('site_api_name', None)
+    if site_name is None or site_name == "":
+        msg = "The site_name can not be empty"
+        raise ValueError(
+            "InvalidSiteName",
+            msg
+        )
+    elif "http" in site_name:
+        msg = (
+            "The site name is not the full URL it should be the ",
+            "API Name of the site like 'my_example_site'"
+        )
+        raise ValueError(
+            "InvalidSiteName",
+            msg
+        )
+    elif " " in site_name:
+        msg = (
+            "The site name should be the API Name of the site like ",
+            "not the Display Name. Example would be 'my_site_name' instead of ",
+            "My Site Name"
+        )
+        raise ValueError(
+            "InvalidSiteName",
+            msg
+        )
+    time_delta = definition.parameters.get('time_delta', None)
+    if time_delta is None or time_delta == "":
+        msg = "The frequency can not be empty"
+        raise ValueError(
+            "InvalidFrequency",
+            msg
+        )
+    else:
+        try:
+            int(time_delta)
+        except Exception as error:
+            msg = "Time delta must be an integer"
+            raise ValueError(
+                "InvalidFrequency",
+                msg
+            )
     pass
+
 
 def collect_events(helper, ew):
     start = timer()
     # loglevel = helper.get_log_level()
     # Proxy setting configuration
-    proxy_settings = helper.get_proxy()
-    # User credentials
-
-    # Global variable configuration
-    email = helper.get_global_setting("email")
-    password = helper.get_global_setting("password")
-    apitoken = helper.get_global_setting("apitoken")
-    # helper.log_info(apitoken)
-    corp_name = helper.get_global_setting("corp")
+    # proxy_settings = helper.get_proxy()
+    global_email = helper.get_global_setting("email")
+    global_api_token = helper.get_global_setting("api_token")
+    global_corp_api_name = helper.get_global_setting("corp_api_name")
     api_host = 'https://dashboard.signalsciences.net'
-    helper.log_info("email: %s" % email)
-    helper.log_info("corp: %s" % corp_name)
+    helper.log_info("email: %s" % global_email)
+    helper.log_info("corp: %s" % global_api_token)
+    python_requests_version = requests.__version__
+    user_agent_version = "1.0.26"
+    user_agent_string = (
+        f"TA-sigsci-waf/{user_agent_version} "
+        f"(PythonRequests {python_requests_version})"
+    )
 
-    pythonRequestsVersion = requests.__version__
-    userAgentVersion = "1.0.25"
-    userAgentString = "SigSci-Splunk-TA-Requests/%s (PythonRequests %s)" \
-        % (userAgentVersion, pythonRequestsVersion)
-
-    # Definition for error handling on the response code
-
-    def checkResponse(code, responseText, curSite=None,
-                      from_time=None, until_time=None):
-        site_name = curSite
-        if code == 400:
-            if "Rate limit exceeded" in responseText:
-                return("rate-limit")
-            else:
-                helper.log_error("Bad API Request (ResponseCode: %s)" % (code))
-                helper.log_error("ResponseError: %s" % responseText)
-                helper.log_error('from: %s' % from_time)
-                helper.log_error('until: %s' % until_time)
-                helper.log_error('email: %s' % email)
-                helper.log_error('Corp: %s' % corp_name)
-                helper.log_error('SiteName: %s' % site_name)
-                return("bad-request")
-        elif code == 500:
-            helper.log_error(
-                "Caused an Internal Server error (ResponseCode: %s)" % (code))
-            helper.log_error("ResponseError: %s" % responseText)
-            helper.log_error('from: %s' % from_time)
-            helper.log_error('until: %s' % until_time)
-            helper.log_error('email: %s' % email)
-            helper.log_error('Corp: %s' % corp_name)
-            helper.log_error('SiteName: %s' % site_name)
-            return("internal-error")
-        elif code == 401:
-            helper.log_error(
-                "Unauthorized, likely bad credentials or site configuration," +
-                " or lack of permissions (ResponseCode: %s)" % (code))
-            helper.log_error("ResponseError: %s" % responseText)
-            helper.log_error('email: %s' % email)
-            helper.log_error('Corp: %s' % corp_name)
-            helper.log_error('SiteName: %s' % site_name)
-            return("unauthorized")
-        elif code >= 400 and code <= 599 and code != 400 \
-                and code != 500 and code != 401:
-            helper.log_error("ResponseError: %s" % responseText)
-            helper.log_error('from: %s' % from_time)
-            helper.log_error('until: %s' % until_time)
-            helper.log_error('email: %s' % email)
-            helper.log_error('Corp: %s' % corp_name)
-            helper.log_error('SiteName: %s' % site_name)
-            return("other-error")
-        else:
-            return("success")
-
-    def sigsciAuth():
-        helper.log_info("Authenticating to SigSci API")
-        # Authenticate
-        authUrl = api_host + '/api/v0/auth'
-        authHeader = {
-            "User-Agent": userAgentString
+    def check_response(code, response_text, current_site=None,
+                       from_time=None, until_time=None):
+        success = False
+        site_name = current_site
+        base_msg = {
+            "from": from_time,
+            "until": until_time,
+            "global_email": global_email,
+            "global_corp_api_name": global_corp_api_name,
+            "site_name": site_name,
+            "response_text": response_text,
+            "status_code": code,
         }
-        auth = requests.post(
-            authUrl,
-            data={"email": email, "password": password},
-            headers=authHeader
-        )
-
-        authCode = auth.status_code
-        authError = auth.text
-
-        authResult = checkResponse(authCode, authError)
-        if authResult is None or authResult != "success":
-            helper.log_error("API Auth Failed")
-            helper.log_error(authResult)
-            exit()
-        elif authResult is not None and authResult == "rate-limit":
-            helper.log_error("SigSci Rate Limit hit")
-            helper.log_error("Retrying in 10 seconds")
-            time.sleep(10)
-            sigsciAuth()
+        if code == 400:
+            if "Rate limit exceeded" in response_text:
+                base_msg["msg"] = "rate-limit"
+            else:
+                base_msg["error"] = "BAD API Request"
+                base_msg["msg"] = "bad-request"
+        elif code == 500:
+            base_msg["error"] = "Internal Server Error"
+            base_msg["msg"] = "internal-error"
+        elif code == 401:
+            base_msg["error"] = "Unauthorized. Incorrect credentials or lack " \
+                                "of permissions"
+            base_msg["msg"] = "unauthorized"
+        elif 400 <= code <= 599 and code != 400 and code != 500 and code != 401:
+            base_msg["error"] = "Unknown Error"
+            base_msg["msg"] = "other-error"
         else:
-            parsed_response = auth.json()
-            token = parsed_response['token']
-            helper.log_info("Authenticated")
-            return(token)
+            success = True
+        return success, base_msg
 
-    def getRequestData(url, headers):
+    def get_request_data(url, headers):
         method = "GET"
-        response_raw = \
-            helper.send_http_request(url, method, parameters=None,
-                                     payload=None, headers=headers,
-                                     cookies=None, verify=True, cert=None,
-                                     timeout=None, use_proxy=True)
-        responseCode = response_raw.status_code
-        responseError = response_raw.text
-        return(response_raw, responseCode, responseError)
+        response_raw = helper.send_http_request(
+            url,
+            method,
+            parameters=None,
+            payload=None,
+            headers=headers,
+            cookies=None,
+            verify=True,
+            cert=None,
+            timeout=None,
+            use_proxy=True
+        )
+        response_codee = response_raw.status_code
+        response_error = response_raw.text
+        return response_raw, response_codee, response_error
 
-    def pullRequests(curSite, delta, token, key=None, apiMode=None):
-        site_name = curSite
+    def pull_requests(current_site, delta, key=None):
+        site_name = current_site
         until_time = datetime.utcnow() - timedelta(minutes=5)
         until_time = until_time.replace(second=0, microsecond=0)
         from_time = until_time - timedelta(minutes=delta)
         until_time = calendar.timegm(until_time.utctimetuple())
         from_time = calendar.timegm(from_time.utctimetuple())
-
+        from_time_friendly = datetime.fromtimestamp(from_time)
+        until_time_friendly = datetime.fromtimestamp(until_time)
         helper.log_info("SiteName: %s" % site_name)
-        helper.log_info("From: %s\nUntil:%s" % (from_time, until_time))
 
-        inputNames = helper.get_input_stanza_names()
-        singleName = ""
+        helper.log_info(f"Start Period: {from_time_friendly}")
+        helper.log_info(f"End Period: {until_time_friendly}")
 
-        if type(inputNames) is dict and inputNames > 1:
+
+        input_name = helper.get_input_stanza_names()
+        single_name = ""
+
+        if type(input_name) is dict and input_name > 1:
             helper.log_info("Multi instance mode")
-            for curName in inputNames:
-                singleName = curName
+            for current_name in input_name:
+                single_name = current_name
         else:
             helper.log_info("Single instance mode")
-            helper.log_info("Inputs: %s" % (inputNames))
-            helper.log_info("Inputs Num: %s" % len(inputNames))
-            singleName = inputNames
-
-
+            helper.log_info("Inputs: %s" % input_name)
+            helper.log_info("Inputs Num: %s" % len(input_name))
+            single_name = input_name
+            helper.log_info(f"single_name: {single_name}")
 
         # Loop across all the data and output it in one big JSON object
-        if apiMode == "apitoken":
-            headers = {
-                'Content-type': 'application/json',
-                'x-api-user': email,
-                'x-api-token': apitoken,
-                'User-Agent': userAgentString
-            }
-        else:
-            headers = {
-                'Content-type': 'application/json',
-                'Authorization': 'Bearer %s' % token,
-                'User-Agent': userAgentString
-            }
+        headers = {
+            'Content-type': 'application/json',
+            'x-api-user': global_email,
+            'x-api-token': global_api_token,
+            'User-Agent': user_agent_string
+        }
 
-        url = api_host + \
-            ('/api/v0/corps/%s/sites/%s/feed/requests?from=%s&until=%s'
-                % (corp_name, site_name, from_time, until_time))
+        url = (
+            f"{api_host}/api/v0/corps/{global_corp_api_name}"
+            f"/sites/{site_name}/feed/requests?"
+            f"from={from_time}&until={until_time}"
+        )
         loop = True
 
         counter = 1
         helper.log_info("Pulling requests from requests API")
-        allRequests = []
+        all_requests = []
         while loop:
             helper.log_info("Processing page %s" % counter)
-            startPage = timer()
-            responseResult, responseCode, ResponseError = \
-                getRequestData(url, headers)
+            start_page = timer()
+            response_result, response_code, response_error = \
+                get_request_data(url, headers)
 
-            sigSciRequestCheck = \
-                checkResponse(responseCode, ResponseError, curSite=site_name,
-                              from_time=from_time, until_time=until_time)
+            pulled, request_details = check_response(
+                response_code,
+                response_error,
+                current_site=site_name,
+                from_time=from_time,
+                until_time=until_time
+            )
 
-            if sigSciRequestCheck is None or sigSciRequestCheck != "success":
+            if not pulled and request_details["msg"] != "rate-limit":
                 helper.log_error("Failed to pull results")
-                helper.log_error(sigSciRequestCheck)
+                helper.log_error(request_details)
                 exit()
-            elif sigSciRequestCheck is not None and \
-                    sigSciRequestCheck == "rate-limit":
-                helper.log_error("SigSci Rate Limit hit")
+            if not pulled and request_details["msg"] == "rate-limit":
+                helper.log_error("Rate Limit hit")
                 helper.log_error("Retrying in 10 seconds")
                 time.sleep(10)
                 break
             else:
-                response = json.loads(responseResult.text)
+                response = json.loads(response_result.text)
 
-            curPageNumRequests = len(response['data'])
-            helper.log_info("Number of Requests for Page: %s"
-                            % curPageNumRequests)
+            number_requests_per_page = len(response['data'])
+            helper.log_info(
+                f"Number of Requests for Page: {number_requests_per_page}"
+            )
 
             for request in response['data']:
                 data = json.dumps(request)
                 data = json.loads(data)
-                headersFix = {}
-                headersFix['headersOut'] = data['headersOut']
-                headersFix['headersIn'] = data['headersIn']
+                headers_to_fix = {
+                    'headersOut': data['headersOut'],
+                    'headersIn': data['headersIn']
+                }
 
-                newFormatOut = {}
+                new_format_out = {}
 
-                if not (headersFix['headersOut'] is None):
-                    for out in headersFix['headersOut']:
-                        newFormatOut[out[0]] = out[1]
+                if not (headers_to_fix['headersOut'] is None):
+                    for out in headers_to_fix['headersOut']:
+                        new_format_out[out[0]] = out[1]
 
-                    data['headersOut'] = newFormatOut
+                    data['headersOut'] = new_format_out
 
-                newFormatIn = {}
+                new_format_in = {}
 
-                if not (headersFix['headersIn'] is None):
-                    for hIn in headersFix['headersIn']:
-                        newFormatIn[hIn[0]] = hIn[1]
+                if not (headers_to_fix['headersIn'] is None):
+                    for header_in in headers_to_fix['headersIn']:
+                        headers_to_fix[header_in[0]] = header_in[1]
 
-                    data['headersIn'] = newFormatIn
+                    data['headersIn'] = headers_to_fix
 
                 data = json.dumps(data)
 
-                helper.log_debug("%s" % data)
-                allRequests.append(data)
+                # helper.log_debug("%s" % data)
+                all_requests.append(data)
 
             if "next" in response and "uri" in response['next']:
                 next_url = response['next']['uri']
                 if next_url == '':
                     helper.log_info("Finished Page %s" % counter)
                     counter += 1
-                    endPage = timer()
-                    pageTime = endPage - startPage
-                    pageTimeResult = round(pageTime, 2)
-                    helper.log_info("Total Page Time: %s seconds"
-                                    % pageTimeResult)
+                    end_page = timer()
+                    page_time = end_page - start_page
+                    page_time_result = round(page_time, 2)
+                    helper.log_info(
+                        f"Total Page Time: {page_time_result} seconds"
+                    )
                     loop = False
                 else:
                     url = api_host + next_url
                     helper.log_info("Finished Page %s" % counter)
                     counter += 1
-                    endPage = timer()
-                    pageTime = endPage - startPage
-                    pageTimeResult = round(pageTime, 2)
-                    helper.log_info("Total Page Time: %s seconds"
-                                    % pageTimeResult)
+                    end_page = timer()
+                    page_time = end_page - start_page
+                    page_time_result = round(page_time, 2)
+                    helper.log_info(
+                        f"Total Page Time: {page_time_result} seconds"
+                    )
             else:
                 loop = False
 
-        totalRequests = len(allRequests)
-        helper.log_info("Total Requests Pulled: %s" % totalRequests)
-        writeStart = timer()
-        for curEvent in allRequests:
+        total_requests = len(all_requests)
+        helper.log_info("Total Requests Pulled: %s" % total_requests)
+        write_start = timer()
+        for current_event in all_requests:
+            # helper.log_debug(current_event)
+            # helper.log_info(f"data={event_data}")
             if key is None:
-                event = \
-                    helper.new_event(source=singleName,
-                                     index=helper.get_output_index(),
-                                     sourcetype=helper.get_sourcetype(),
-                                     data=curEvent)
+                # helper.log_info("input_type=single")
+                source_index = helper.get_output_index()
+                source_type = helper.get_sourcetype()
+                # helper.log_info(f"source={single_name}")
+                # helper.log_info(f"index={source_index}")
+                # helper.log_info(f"source_type={source_type}")
+                event = helper.new_event(
+                    source=single_name,
+                    index=helper.get_output_index(),
+                    sourcetype=source_type,
+                    data=current_event
+                )
             else:
+                # helper.log_info("input_type=multi")
                 indexes = helper.get_output_index()
-                curIndex = indexes[key]
+                current_index = indexes[key]
                 types = helper.get_sourcetype()
-                curType = types[key]
-                event = \
-                    helper.new_event(source=singleName,
-                                     index=curIndex, sourcetype=curType,
-                                     data=curEvent)
+                source_type = types[key]
+                single_name = single_name[0]
+                event = helper.new_event(
+                    source=single_name,
+                    index=current_index,
+                    sourcetype=source_type,
+                    data=current_event
+                )
 
             try:
                 ew.write_event(event)
             except Exception as e:
+                helper.log_error(event)
                 raise e
-        writeEnd = timer()
-        writeTime = writeEnd - writeStart
-        writeTimeResult = round(writeTime, 2)
+        write_end = timer()
+        write_time = write_end - write_start
+        write_time_result = round(write_time, 2)
         helper.log_info("Total Event Output Time: %s seconds"
-                        % writeTimeResult)
+                        % write_time_result)
 
     # If multiple inputs configured it creates an array of values and the
     # script only gets called once per Input configuration
 
-    multiCheck = helper.get_arg('delta')
-    hostTest = helper.get_arg('Host')
-    helper.log_info("Host: %s" % (hostTest))
-
-    if apitoken is not None and apitoken != "":
-        authMode = "apitoken"
-        helper.log_info("AuthMode: API Token")
-    else:
-        authMode = "password"
-        helper.log_info("AuthMode: Password")
-        sigsciToken = sigsciAuth()
-
-    if type(multiCheck) is dict:
-        for activeInput in multiCheck:
-            delta = int(multiCheck[activeInput])
-            allSites = helper.get_arg('site')
-            site = allSites[activeInput]
+    # host_test = helper.get_arg('Host')
+    # helper.log_info("Host: %s" % host_test)
+    all_sites = helper.get_arg('site_api_name')
+    time_deltas = helper.get_arg('time_delta')
+    if type(all_sites) is dict:
+        helper.log_info("run_type: Sequential")
+        for active_input in all_sites:
+            site = all_sites[active_input]
+            time_delta = int(time_deltas[active_input])
             helper.log_info("site: %s" % site)
-            if authMode == "apitoken":
-                pullRequests(key=activeInput, curSite=site, delta=delta,
-                             token=apitoken, apiMode="apitoken")
-            else:
-                pullRequests(key=activeInput, curSite=site, delta=delta,
-                             token=sigsciToken)
+            pull_requests(
+                key=active_input,
+                current_site=site,
+                delta=time_delta
+            )
             helper.log_info("Finished Pulling Requests for %s" % site)
     else:
-        delta = int(helper.get_arg('delta'))
-        site = helper.get_arg('site')
+        helper.log_info("Run Type: Concurrent")
+        site = helper.get_arg('site_api_name')
         helper.log_info("site: %s" % site)
-        if authMode == "apitoken":
-            pullRequests(site, delta, apitoken, apiMode="apitoken")
-        else:
-            pullRequests(site, delta, sigsciToken)
+        pull_requests(
+            current_site=site,
+            delta=int(time_deltas)
+        )
         helper.log_info("Finished Pulling Requests for %s" % site)
     end = timer()
-    totalTime = end - start
-    timeResult = round(totalTime, 2)
-    helper.log_info("Total Script Time: %s seconds" % timeResult)
+    total_time = end - start
+    time_result = round(total_time, 2)
+    helper.log_info("Total Script Time: %s seconds" % time_result)

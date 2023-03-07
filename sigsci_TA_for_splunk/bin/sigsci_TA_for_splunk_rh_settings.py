@@ -103,9 +103,9 @@ fields_additional_parameters = [
         )
     ), 
     field.RestField(
-        'apitoken',
+        'corp_api_name',
         required=True,
-        encrypted=True,
+        encrypted=False,
         default='',
         validator=validator.String(
             min_len=0, 
@@ -113,9 +113,9 @@ fields_additional_parameters = [
         )
     ), 
     field.RestField(
-        'corp',
+        'api_token',
         required=True,
-        encrypted=False,
+        encrypted=True,
         default='',
         validator=validator.String(
             min_len=0, 

@@ -7,7 +7,7 @@ import datetime
 import json
 
 import modinput_wrapper.base_modinput
-from solnlib.packages.splunklib import modularinput as smi
+from splunklib import modularinput as smi
 
 
 
@@ -33,7 +33,7 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.BaseModInput):
     def get_scheme(self):
         """overloaded splunklib modularinput method"""
         scheme = super(ModInputSigsciEvent, self).get_scheme()
-        scheme.title = ("SigSci Events")
+        scheme.title = ("SigsciEvent")
         scheme.description = ("Go to the add-on\'s configuration UI and configure modular inputs under the Inputs menu.")
         scheme.use_external_validation = True
         scheme.streaming_mode_xml = True
@@ -46,13 +46,13 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.BaseModInput):
         For customized inputs, hard code the arguments here to hide argument detail from users.
         For other input types, arguments should be get from input_module. Defining new input types could be easier.
         """
-        scheme.add_argument(smi.Argument("site", title="Site API Name",
-                                         description="The API Name for the Signal Sciences Dashboard Site.",
+        scheme.add_argument(smi.Argument("site_api_name", title="Site API Name",
+                                         description="This is the Site API Name. It should not be a URL.",
                                          required_on_create=True,
                                          required_on_edit=False))
-        scheme.add_argument(smi.Argument("delta", title="Delta (Minutes)",
-                                         description="",
-                                         required_on_create=False,
+        scheme.add_argument(smi.Argument("time_delta", title="Time Delta in seconds",
+                                         description="This is the time period that the Moduler Input will pull data. It should be the exact same as the Modular Input interval.",
+                                         required_on_create=True,
                                          required_on_edit=False))
         return scheme
 
