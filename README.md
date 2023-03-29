@@ -58,7 +58,7 @@ Once the Splunk App has been installed you will need to configure the shared set
 10. Fill in the Input settings
 
     * **Name:** This is the unique name you would like to give the input
-    * **index:** This can be any index you recommend, I generally will do a custom index that I create called `sigsci`
+    * **index:**  This is the index that will store the data on splunk, you can use `default`
     * **Time Delta in Seconds:** This is the time period, in seconds, that the script will pull. This should generally be left at the default which is 300 and matches the interval for the input.
     * **Interval:** This is the interval frequency the script runs in, in seconds. This should be the same as the delta and is recommended to leave at 300
     * **Site API Name:** This is the API Name for the dashboard it could be something like `app-prod`
