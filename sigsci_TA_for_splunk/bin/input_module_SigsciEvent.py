@@ -76,7 +76,7 @@ def collect_events(helper, ew):
     global_corp_api_name = helper.get_global_setting("corp_api_name")
     api_host = 'https://dashboard.signalsciences.net'
     helper.log_info("email: %s" % global_email)
-    helper.log_info("corp: %s" % global_api_token)
+    helper.log_info("corp: %s" % global_corp_api_name)
     python_requests_version = requests.__version__
     user_agent_version = "1.0.26"
     user_agent_string = (
