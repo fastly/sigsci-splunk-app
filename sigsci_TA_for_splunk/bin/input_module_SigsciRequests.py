@@ -48,22 +48,6 @@ def validate_input(helper, definition):
             "InvalidSiteName",
             msg
         )
-    time_delta = definition.parameters.get('time_delta', None)
-    if time_delta is None or time_delta == "":
-        msg = "The frequency can not be empty"
-        raise ValueError(
-            "InvalidFrequency",
-            msg
-        )
-    else:
-        try:
-            int(time_delta)
-        except Exception as error:
-            msg = "Time delta must be an integer"
-            raise ValueError(
-                "InvalidFrequency",
-                msg
-            )
     pass
 
 
@@ -269,7 +253,8 @@ def collect_events(helper, ew):
     # host_test = helper.get_arg('Host')
     # helper.log_info("Host: %s" % host_test)
     all_sites = helper.get_arg('site_api_name')
-    time_deltas = helper.get_arg('time_delta')
+    time_deltas = helper.get_arg('interval')
+    helper.log_info(f"interval: {time_deltas}")
     if type(all_sites) is dict:
         helper.log_info("run_type: Sequential")
         for active_input in all_sites:

@@ -34,16 +34,6 @@ fields = [
         )
     ), 
     field.RestField(
-        'time_delta',
-        required=True,
-        encrypted=False,
-        default='300',
-        validator=validator.String(
-            min_len=0, 
-            max_len=8192, 
-        )
-    ), 
-    field.RestField(
         'site_api_name',
         required=True,
         encrypted=False,

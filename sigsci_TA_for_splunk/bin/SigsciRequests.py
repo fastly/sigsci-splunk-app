@@ -46,10 +46,6 @@ class ModInputSigsciRequests(modinput_wrapper.base_modinput.BaseModInput):
         For customized inputs, hard code the arguments here to hide argument detail from users.
         For other input types, arguments should be get from input_module. Defining new input types could be easier.
         """
-        scheme.add_argument(smi.Argument("time_delta", title="Time Delta in Seconds",
-                                         description="This is the period of time that the Modular Input will pull. This should be the exact same as the Modular Input interval",
-                                         required_on_create=True,
-                                         required_on_edit=False))
         scheme.add_argument(smi.Argument("site_api_name", title="Site API Name",
                                          description="This is the API Name of the site to pull date from. This should not be a URL.",
                                          required_on_create=True,

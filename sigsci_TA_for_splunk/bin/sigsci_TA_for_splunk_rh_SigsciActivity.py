@@ -34,10 +34,10 @@ fields = [
         )
     ), 
     field.RestField(
-        'time_delta',
-        required=True,
+        'place_holder',
+        required=False,
         encrypted=False,
-        default='300',
+        default=None,
         validator=validator.String(
             min_len=0, 
             max_len=8192, 
