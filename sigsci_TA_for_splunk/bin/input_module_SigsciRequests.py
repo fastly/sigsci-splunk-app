@@ -73,7 +73,7 @@ def collect_events(helper, ew):
         site_name = current_site
         until_time = datetime.utcnow() - timedelta(minutes=5)
         until_time = until_time.replace(second=0, microsecond=0)
-        from_time = until_time - timedelta(minutes=delta)
+        from_time = until_time - timedelta(seconds=delta)
         until_time = calendar.timegm(until_time.utctimetuple())
         from_time = calendar.timegm(from_time.utctimetuple())
         from_time_friendly = datetime.fromtimestamp(from_time)
@@ -249,9 +249,6 @@ def collect_events(helper, ew):
 
     # If multiple inputs configured it creates an array of values and the
     # script only gets called once per Input configuration
-
-    # host_test = helper.get_arg('Host')
-    # helper.log_info("Host: %s" % host_test)
     all_sites = helper.get_arg('site_api_name')
     time_deltas = helper.get_arg('interval')
     helper.log_info(f"interval: {time_deltas}")
