@@ -22,22 +22,6 @@ from sigsci_helper import check_response, get_request_data
 
 def validate_input(helper, definition):
     # This example accesses the modular input variable
-    time_delta = definition.parameters.get('time_delta', None)
-    if time_delta is None or time_delta == "":
-        msg = "The frequency can not be empty"
-        raise ValueError(
-            "InvalidFrequency",
-            msg
-        )
-    else:
-        try:
-            int(time_delta)
-        except Exception as error:
-            msg = "Time delta must be an integer"
-            raise ValueError(
-                "InvalidFrequency",
-                msg
-            )
     pass
 
 
@@ -224,7 +208,8 @@ def collect_events(helper, ew):
 
     # If multiple inputs configured it creates an array of values and the
     # script only gets called once per Input configuration
-    time_deltas = helper.get_arg('time_delta')
+    time_deltas = helper.get_arg('interval')
+    helper.log_info(f"interval: {time_deltas}")
     if type(time_deltas) is dict:
         helper.log_info("run_type: Sequential")
         for active_input in time_deltas:

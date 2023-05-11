@@ -46,9 +46,9 @@ class ModInputSigsciActivity(modinput_wrapper.base_modinput.BaseModInput):
         For customized inputs, hard code the arguments here to hide argument detail from users.
         For other input types, arguments should be get from input_module. Defining new input types could be easier.
         """
-        scheme.add_argument(smi.Argument("time_delta", title="Time Delta in seconds",
-                                         description="This is the time period of events that the Modular Input will pull. This should be the exact same as the Moduler Input interval.",
-                                         required_on_create=True,
+        scheme.add_argument(smi.Argument("place_holder", title="Place Holder",
+                                         description="It was required to have one option even if it isn\'t needed. You can skip this one.",
+                                         required_on_create=False,
                                          required_on_edit=False))
         return scheme
 
