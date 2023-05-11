@@ -1,7 +1,7 @@
 {
     "meta": {
         "name": "sigsci_TA_for_splunk",
-        "displayName": "sigsci TA for splunk",
+        "displayName": "Signal Sciences WAF TA",
         "version": "1.0.0",
         "restRoot": "sigsci_TA_for_splunk",
         "schemaVersion": "0.0.3"

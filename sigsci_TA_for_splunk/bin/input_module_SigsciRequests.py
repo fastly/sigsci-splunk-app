@@ -6,6 +6,7 @@ from timeit import default_timer as timer
 import requests
 import calendar
 import json
+from sigsci_helper import check_response, get_request_data
 
 '''
     IMPORTANT
@@ -76,64 +77,13 @@ def collect_events(helper, ew):
     global_corp_api_name = helper.get_global_setting("corp_api_name")
     api_host = 'https://dashboard.signalsciences.net'
     helper.log_info("email: %s" % global_email)
-    helper.log_info("corp: %s" % global_api_token)
+    helper.log_info("corp: %s" % global_corp_api_name)
     python_requests_version = requests.__version__
     user_agent_version = "1.0.26"
     user_agent_string = (
         f"TA-sigsci-waf/{user_agent_version} "
         f"(PythonRequests {python_requests_version})"
     )
-
-    def check_response(code, response_text, current_site=None,
-                       from_time=None, until_time=None):
-        success = False
-        site_name = current_site
-        base_msg = {
-            "from": from_time,
-            "until": until_time,
-            "global_email": global_email,
-            "global_corp_api_name": global_corp_api_name,
-            "site_name": site_name,
-            "response_text": response_text,
-            "status_code": code,
-        }
-        if code == 400:
-            if "Rate limit exceeded" in response_text:
-                base_msg["msg"] = "rate-limit"
-            else:
-                base_msg["error"] = "BAD API Request"
-                base_msg["msg"] = "bad-request"
-        elif code == 500:
-            base_msg["error"] = "Internal Server Error"
-            base_msg["msg"] = "internal-error"
-        elif code == 401:
-            base_msg["error"] = "Unauthorized. Incorrect credentials or lack " \
-                                "of permissions"
-            base_msg["msg"] = "unauthorized"
-        elif 400 <= code <= 599 and code != 400 and code != 500 and code != 401:
-            base_msg["error"] = "Unknown Error"
-            base_msg["msg"] = "other-error"
-        else:
-            success = True
-        return success, base_msg
-
-    def get_request_data(url, headers):
-        method = "GET"
-        response_raw = helper.send_http_request(
-            url,
-            method,
-            parameters=None,
-            payload=None,
-            headers=headers,
-            cookies=None,
-            verify=True,
-            cert=None,
-            timeout=None,
-            use_proxy=True
-        )
-        response_codee = response_raw.status_code
-        response_error = response_raw.text
-        return response_raw, response_codee, response_error
 
     def pull_requests(current_site, delta, key=None):
         site_name = current_site
@@ -186,11 +136,13 @@ def collect_events(helper, ew):
             helper.log_info("Processing page %s" % counter)
             start_page = timer()
             response_result, response_code, response_error = \
-                get_request_data(url, headers)
+                get_request_data(url, headers, helper)
 
             pulled, request_details = check_response(
                 response_code,
                 response_error,
+                global_email=global_email,
+                global_corp_api_name=global_corp_api_name,
                 current_site=site_name,
                 from_time=from_time,
                 until_time=until_time
@@ -206,7 +158,7 @@ def collect_events(helper, ew):
                 time.sleep(10)
                 break
             else:
-                response = json.loads(response_result.text)
+                response = response_result
 
             number_requests_per_page = len(response['data'])
             helper.log_info(
