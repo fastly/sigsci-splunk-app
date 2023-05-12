@@ -25,7 +25,7 @@ modtime = 1675750084.239520000
 [inputs/SigsciRequests%3A%2F%2Fsplunk_demo_server_requests]
 owner = admin
 version = 9.0.3
-modtime = 1675750104.549497000
+modtime = 1680195328.462962000
 
 [inputs/SigsciEvent%3A%2F%2Fsplunk_demo_server_event]
 owner = admin

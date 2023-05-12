@@ -50,10 +50,6 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.BaseModInput):
                                          description="This is the Site API Name. It should not be a URL.",
                                          required_on_create=True,
                                          required_on_edit=False))
-        scheme.add_argument(smi.Argument("time_delta", title="Time Delta in seconds",
-                                         description="This is the time period that the Moduler Input will pull data. It should be the exact same as the Modular Input interval.",
-                                         required_on_create=True,
-                                         required_on_edit=False))
         return scheme
 
     def get_app_name(self):

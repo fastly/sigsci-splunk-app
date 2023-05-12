@@ -6,6 +6,7 @@ from timeit import default_timer as timer
 import requests
 import calendar
 import json
+from sigsci_helper import check_response, get_request_data
 
 '''
     IMPORTANT
@@ -21,22 +22,6 @@ import json
 
 def validate_input(helper, definition):
     # This example accesses the modular input variable
-    time_delta = definition.parameters.get('time_delta', None)
-    if time_delta is None or time_delta == "":
-        msg = "The frequency can not be empty"
-        raise ValueError(
-            "InvalidFrequency",
-            msg
-        )
-    else:
-        try:
-            int(time_delta)
-        except Exception as error:
-            msg = "Time delta must be an integer"
-            raise ValueError(
-                "InvalidFrequency",
-                msg
-            )
     pass
 
 
@@ -50,61 +35,13 @@ def collect_events(helper, ew):
     global_corp_api_name = helper.get_global_setting("corp_api_name")
     api_host = 'https://dashboard.signalsciences.net'
     helper.log_info("email: %s" % global_email)
-    helper.log_info("corp: %s" % global_api_token)
+    helper.log_info("corp: %s" % global_corp_api_name)
     python_requests_version = requests.__version__
     user_agent_version = "1.0.26"
     user_agent_string = (
         f"TA-sigssci-waf/{user_agent_version} "
         f"(PythonRequests {python_requests_version})"
     )
-
-    def check_response(code, response_text, from_time=None, until_time=None):
-        success = False
-        base_msg = {
-            "from": from_time,
-            "until": until_time,
-            "global_email": global_email,
-            "global_corp_api_name": global_corp_api_name,
-            "response_text": response_text,
-            "status_code": code,
-        }
-        if code == 400:
-            if "Rate limit exceeded" in response_text:
-                base_msg["msg"] = "rate-limit"
-            else:
-                base_msg["error"] = "BAD API Request"
-                base_msg["msg"] = "bad-request"
-        elif code == 500:
-            base_msg["error"] = "Internal Server Error"
-            base_msg["msg"] = "internal-error"
-        elif code == 401:
-            base_msg["error"] = "Unauthorized. Incorrect credentials or lack " \
-                                "of permissions"
-            base_msg["msg"] = "unauthorized"
-        elif 400 <= code <= 599 and code != 400 and code != 500 and code != 401:
-            base_msg["error"] = "Unknown Error"
-            base_msg["msg"] = "other-error"
-        else:
-            success = True
-        return success, base_msg
-
-    def get_request_data(url, headers):
-        method = "GET"
-        response_raw = helper.send_http_request(
-            url,
-            method,
-            parameters=None,
-            payload=None,
-            headers=headers,
-            cookies=None,
-            verify=True,
-            cert=None,
-            timeout=None,
-            use_proxy=True
-        )
-        response_codee = response_raw.status_code
-        response_error = response_raw.text
-        return response_raw, response_codee, response_error
 
     def pull_events(delta, key=None):
         until_time = datetime.utcnow()
@@ -154,11 +91,13 @@ def collect_events(helper, ew):
             helper.log_info("Processing page %s" % counter)
             start_page = timer()
             response_result, response_code, response_error = \
-                get_request_data(url, headers)
+                get_request_data(url, headers, helper)
 
             pulled, request_details = check_response(
                 response_code,
                 response_error,
+                global_email=global_email,
+                global_corp_api_name=global_corp_api_name,
                 from_time=from_time,
                 until_time=until_time
             )
@@ -173,14 +112,13 @@ def collect_events(helper, ew):
                 time.sleep(10)
                 break
             else:
-                response = json.loads(response_result.text)
+                response = response_result
 
             number_requests_per_page = len(response['data'])
             helper.log_info(
                 f"Number of Requests for Page: {number_requests_per_page}"
             )
-
-            for request in response['data']:
+            for request in response["data"]:
                 data = json.dumps(request)
                 data = json.loads(data)
                 all_events.append(data)
@@ -270,7 +208,8 @@ def collect_events(helper, ew):
 
     # If multiple inputs configured it creates an array of values and the
     # script only gets called once per Input configuration
-    time_deltas = helper.get_arg('time_delta')
+    time_deltas = helper.get_arg('interval')
+    helper.log_info(f"interval: {time_deltas}")
     if type(time_deltas) is dict:
         helper.log_info("run_type: Sequential")
         for active_input in time_deltas:

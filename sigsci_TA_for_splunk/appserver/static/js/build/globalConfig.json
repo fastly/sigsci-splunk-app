@@ -1,7 +1,7 @@
 {
     "meta": {
         "name": "sigsci_TA_for_splunk",
-        "displayName": "sigsci TA for splunk",
+        "displayName": "Signal Sciences WAF TA",
         "version": "1.0.0",
         "restRoot": "sigsci_TA_for_splunk",
         "schemaVersion": "0.0.3"
@@ -248,8 +248,8 @@
                         "label": "Site API Name"
                     },
                     {
-                        "field": "time_delta",
-                        "label": "Time Delta in seconds"
+                        "field": "place_holder",
+                        "label": "Place Holder"
                     }
                 ],
                 "actions": [
@@ -332,25 +332,6 @@
                                     "errorMsg": "Max length of text input is 8192"
                                 }
                             ]
-                        },
-                        {
-                            "field": "time_delta",
-                            "label": "Time Delta in seconds",
-                            "help": "This is the time period that the Moduler Input will pull data. It should be the exact same as the Modular Input interval.",
-                            "required": true,
-                            "type": "text",
-                            "defaultValue": "300",
-                            "validators": [
-                                {
-                                    "type": "string",
-                                    "minLength": 0,
-                                    "maxLength": 8192,
-                                    "errorMsg": "Max length of text input is 8192"
-                                }
-                            ],
-                            "options": {
-                                "placeholder": "300"
-                            }
                         }
                     ]
                 },
@@ -413,12 +394,11 @@
                             ]
                         },
                         {
-                            "field": "time_delta",
-                            "label": "Time Delta in seconds",
-                            "help": "This is the time period of events that the Modular Input will pull. This should be the exact same as the Moduler Input interval.",
-                            "required": true,
+                            "field": "place_holder",
+                            "label": "Place Holder",
+                            "help": "It was required to have one option even if it isn't needed. You can skip this one.",
+                            "required": false,
                             "type": "text",
-                            "defaultValue": "300",
                             "validators": [
                                 {
                                     "type": "string",
@@ -428,7 +408,7 @@
                                 }
                             ],
                             "options": {
-                                "placeholder": "300"
+                                "placeholder": "Not needed"
                             }
                         }
                     ]
@@ -490,25 +470,6 @@
                                     "errorMsg": "Length of index name should be between 1 and 80."
                                 }
                             ]
-                        },
-                        {
-                            "field": "time_delta",
-                            "label": "Time Delta in Seconds",
-                            "help": "This is the period of time that the Modular Input will pull. This should be the exact same as the Modular Input interval",
-                            "required": true,
-                            "type": "text",
-                            "defaultValue": "300",
-                            "validators": [
-                                {
-                                    "type": "string",
-                                    "minLength": 0,
-                                    "maxLength": 8192,
-                                    "errorMsg": "Max length of text input is 8192"
-                                }
-                            ],
-                            "options": {
-                                "placeholder": "300"
-                            }
                         },
                         {
                             "field": "site_api_name",
