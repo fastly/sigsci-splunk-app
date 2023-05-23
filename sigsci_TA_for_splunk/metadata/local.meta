@@ -32,11 +32,6 @@ owner = admin
 version = 9.0.3
 modtime = 1675750150.110977000
 
-[props/sigsci-requests]
-owner = admin
-version = 9.0.3
-modtime = 1675750292.930184000
-
 [props/sigsci-event]
 owner = admin
 version = 9.0.3
@@ -46,3 +41,13 @@ modtime = 1675750326.855757000
 owner = admin
 version = 9.0.3
 modtime = 1675750355.467117000
+
+[props/sigsci-requests]
+owner = admin
+version = 9.0.3
+modtime = 1684786218.968319000
+
+[collections/sigsci_TA_for_splunk_checkpointer]
+owner = admin
+version = 9.0.3
+modtime = 1684820112.415615000

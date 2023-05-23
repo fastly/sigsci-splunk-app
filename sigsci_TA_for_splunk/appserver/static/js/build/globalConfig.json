@@ -261,8 +261,8 @@
             },
             "services": [
                 {
-                    "name": "SigsciEvent",
-                    "title": "SigsciEvent",
+                    "name": "SigsciRequests",
+                    "title": "SigsciRequests",
                     "entity": [
                         {
                             "field": "name",
@@ -321,7 +321,7 @@
                         {
                             "field": "site_api_name",
                             "label": "Site API Name",
-                            "help": "This is the Site API Name. It should not be a URL.",
+                            "help": "This is the API Name of the site to pull date from. This should not be a URL.",
                             "required": true,
                             "type": "text",
                             "validators": [
@@ -414,8 +414,8 @@
                     ]
                 },
                 {
-                    "name": "SigsciRequests",
-                    "title": "SigsciRequests",
+                    "name": "SigsciEvent",
+                    "title": "SigsciEvent",
                     "entity": [
                         {
                             "field": "name",
@@ -474,7 +474,7 @@
                         {
                             "field": "site_api_name",
                             "label": "Site API Name",
-                            "help": "This is the API Name of the site to pull date from. This should not be a URL.",
+                            "help": "This is the Site API Name. It should not be a URL.",
                             "required": true,
                             "type": "text",
                             "validators": [
