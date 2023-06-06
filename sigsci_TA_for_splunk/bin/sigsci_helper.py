@@ -172,8 +172,9 @@ def get_results(title, helper, config):
                 config.event_ids.append(event_id)
             else:
                 continue
-            headers_out = data['headersOut']
-            headers_in = data['headersIn']
+            headers_out = data.get('headersOut', []) 
+            headers_in = data.get('headersIn', [])
+
 
             if headers_out is not None:
                 new_header_out = []
