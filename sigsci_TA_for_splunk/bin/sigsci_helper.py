@@ -175,7 +175,6 @@ def get_results(title, helper, config):
             headers_out = data.get('headersOut', []) 
             headers_in = data.get('headersIn', [])
 
-
             if headers_out is not None:
                 new_header_out = []
                 for header in headers_out:
