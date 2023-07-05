@@ -87,7 +87,8 @@ class ConfFile:
         self._port = port
         self._context = context
         self._cred_manager = None
-        ### 'realm' is set to provided 'realm' argument otherwise as default behaviour it is set to 'APP_NAME'.
+        # 'realm' is set to provided 'realm' argument otherwise as default
+        # behaviour it is set to 'APP_NAME'.
         if realm is None:
             self._realm = self._app
         else:
@@ -337,7 +338,7 @@ class ConfFile:
 
         try:
             self._conf.delete(stanza_name)
-        except KeyError as e:
+        except KeyError:
             logging.error(
                 "Delete stanza: %s error: %s.", stanza_name, traceback.format_exc()
             )
@@ -381,8 +382,11 @@ class ConfManager:
         `credential:__REST_CREDENTIAL__#Splunk_TA_test#configs/conf-CONF_FILENAME:STANZA_NAME``splunk_cred_sep``1:`
 
         >>> from solnlib import conf_manager
-        >>> cfm = conf_manager.ConfManager(session_key,
-                                          'Splunk_TA_test', realm='__REST_CREDENTIAL__#Splunk_TA_test#configs/conf-CONF_FILENAME')
+        >>> cfm = conf_manager.ConfManager(
+                session_key,
+                'Splunk_TA_test',
+                realm='__REST_CREDENTIAL__#Splunk_TA_test#configs/conf-CONF_FILENAME'
+            )
     """
 
     def __init__(
@@ -452,7 +456,7 @@ class ConfManager:
         try:
             conf = self._confs[name]
         except KeyError:
-            raise ConfManagerException("Config file: %s does not exist." % name)
+            raise ConfManagerException(f"Config file: {name} does not exist.")
 
         return ConfFile(
             name,
@@ -494,3 +498,60 @@ class ConfManager:
             self._realm,
             **self._context,
         )
+
+
+def get_log_level(
+    *,
+    logger: logging.Logger,
+    session_key: str,
+    app_name: str,
+    conf_name: str,
+    log_level_field: str = "loglevel",
+    default_log_level: str = "INFO",
+) -> str:
+    """This function returns the log level for the addon from configuration
+    file.
+
+    Arguments:
+        logger: Logger.
+        session_key: Splunk access token.
+        app_name: Add-on name.
+        conf_name: Configuration file name where logging stanza is.
+        log_level_field: Logging level field name under logging stanza.
+        default_log_level: Default log level to return in case of errors.
+
+    Returns:
+        Log level defined under `logging.log_level_field` field in `conf_name`
+        file. In case of any error, `default_log_level` will be returned.
+
+    Examples:
+        >>> from solnlib import conf_manager
+        >>> log_level = conf_manager.get_log_level(
+        >>>     logger,
+        >>>     "session_key",
+        >>>     "ADDON_NAME",
+        >>>     "splunk_ta_addon_settings",
+        >>> )
+    """
+    try:
+        cfm = ConfManager(
+            session_key,
+            app_name,
+            realm=f"__REST_CREDENTIAL__#{app_name}#configs/conf-{conf_name}",
+        )
+        conf = cfm.get_conf(conf_name)
+    except ConfManagerException:
+        logger.error(
+            f"Failed to fetch configuration file {conf_name}, "
+            f"taking {default_log_level} as log level."
+        )
+        return default_log_level
+    try:
+        logging_details = conf.get("logging")
+        return logging_details.get(log_level_field, default_log_level)
+    except ConfStanzaNotExistException:
+        logger.error(
+            f'"logging" stanza does not exist under {conf_name}, '
+            f"taking {default_log_level} as log level."
+        )
+        return default_log_level

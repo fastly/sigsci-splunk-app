@@ -244,12 +244,12 @@
                         "label": "Status"
                     },
                     {
-                        "field": "site_api_name",
-                        "label": "Site API Name"
-                    },
-                    {
                         "field": "place_holder",
                         "label": "Place Holder"
+                    },
+                    {
+                        "field": "site_api_name",
+                        "label": "Site API Name"
                     }
                 ],
                 "actions": [
@@ -260,81 +260,6 @@
                 ]
             },
             "services": [
-                {
-                    "name": "SigsciRequests",
-                    "title": "SigsciRequests",
-                    "entity": [
-                        {
-                            "field": "name",
-                            "label": "Name",
-                            "type": "text",
-                            "help": "Enter a unique name for the data input",
-                            "required": true,
-                            "validators": [
-                                {
-                                    "type": "regex",
-                                    "pattern": "^[a-zA-Z]\\w*$",
-                                    "errorMsg": "Input Name must start with a letter and followed by alphabetic letters, digits or underscores."
-                                },
-                                {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 100,
-                                    "errorMsg": "Length of input name should be between 1 and 100"
-                                }
-                            ]
-                        },
-                        {
-                            "field": "interval",
-                            "label": "Interval",
-                            "type": "text",
-                            "required": true,
-                            "help": "Time interval of input in seconds.",
-                            "validators": [
-                                {
-                                    "type": "regex",
-                                    "pattern": "^\\-[1-9]\\d*$|^\\d*$",
-                                    "errorMsg": "Interval must be an integer."
-                                }
-                            ]
-                        },
-                        {
-                            "field": "index",
-                            "label": "Index",
-                            "type": "singleSelect",
-                            "defaultValue": "default",
-                            "options": {
-                                "endpointUrl": "data/indexes",
-                                "createSearchChoice": true,
-                                "denyList": "^_.*$"
-                            },
-                            "required": true,
-                            "validators": [
-                                {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 80,
-                                    "errorMsg": "Length of index name should be between 1 and 80."
-                                }
-                            ]
-                        },
-                        {
-                            "field": "site_api_name",
-                            "label": "Site API Name",
-                            "help": "This is the API Name of the site to pull date from. This should not be a URL.",
-                            "required": true,
-                            "type": "text",
-                            "validators": [
-                                {
-                                    "type": "string",
-                                    "minLength": 0,
-                                    "maxLength": 8192,
-                                    "errorMsg": "Max length of text input is 8192"
-                                }
-                            ]
-                        }
-                    ]
-                },
                 {
                     "name": "SigsciActivity",
                     "title": "SigsciActivity",
@@ -475,6 +400,81 @@
                             "field": "site_api_name",
                             "label": "Site API Name",
                             "help": "This is the Site API Name. It should not be a URL.",
+                            "required": true,
+                            "type": "text",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 0,
+                                    "maxLength": 8192,
+                                    "errorMsg": "Max length of text input is 8192"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "SigsciRequests",
+                    "title": "SigsciRequests",
+                    "entity": [
+                        {
+                            "field": "name",
+                            "label": "Name",
+                            "type": "text",
+                            "help": "Enter a unique name for the data input",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "pattern": "^[a-zA-Z]\\w*$",
+                                    "errorMsg": "Input Name must start with a letter and followed by alphabetic letters, digits or underscores."
+                                },
+                                {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100,
+                                    "errorMsg": "Length of input name should be between 1 and 100"
+                                }
+                            ]
+                        },
+                        {
+                            "field": "interval",
+                            "label": "Interval",
+                            "type": "text",
+                            "required": true,
+                            "help": "Time interval of input in seconds.",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "pattern": "^\\-[1-9]\\d*$|^\\d*$",
+                                    "errorMsg": "Interval must be an integer."
+                                }
+                            ]
+                        },
+                        {
+                            "field": "index",
+                            "label": "Index",
+                            "type": "singleSelect",
+                            "defaultValue": "default",
+                            "options": {
+                                "endpointUrl": "data/indexes",
+                                "createSearchChoice": true,
+                                "denyList": "^_.*$"
+                            },
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 80,
+                                    "errorMsg": "Length of index name should be between 1 and 80."
+                                }
+                            ]
+                        },
+                        {
+                            "field": "site_api_name",
+                            "label": "Site API Name",
+                            "help": "This is the API Name of the site to pull date from. This should not be a URL.",
                             "required": true,
                             "type": "text",
                             "validators": [

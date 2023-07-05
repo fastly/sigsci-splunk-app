@@ -1,6 +1,7 @@
 # encoding = utf-8
 from timeit import default_timer as timer
 import json
+from datetime import datetime
 from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time
 
 '''
@@ -39,16 +40,12 @@ def collect_events(helper, ew):
         if last_run_until is None:
             (
                 until_time,
-                from_time,
-                from_time_friendly,
-                until_time_friendly
+                from_time
             ) = get_from_and_until_times(delta, five_min_offset=False)
         else:
             (
                 until_time,
-                from_time,
-                from_time_friendly,
-                until_time_friendly
+                from_time
             ) = get_until_time(last_run_until, delta, five_min_offset=False)
         if from_time is None:
             helper.log_info(f"{last_run_until} >= current now time, skipping run")
@@ -61,8 +58,8 @@ def collect_events(helper, ew):
             return
         helper.save_check_point("activity_last_until_time", until_time)
 
-        helper.log_info(f"Start Period: {from_time_friendly}")
-        helper.log_info(f"End Period: {until_time_friendly}")
+        helper.log_info(f"Start Period: {datetime.fromtimestamp(from_time)}")
+        helper.log_info(f"End Period: {datetime.fromtimestamp(until_time)}")
 
         input_name = helper.get_input_stanza_names()
         single_name = ""
@@ -105,9 +102,6 @@ def collect_events(helper, ew):
         helper.log_info("Total Corp Activity Pulled: %s" % total_requests)
         write_start = timer()
         for current_event in all_events:
-            # helper.log_debug(current_event)
-            # helper.log_info(f"data={event_data}")
-            current_event = json.dumps(current_event)
             if key is None:
                 source_type = helper.get_sourcetype()
                 helper.log_info("Concurrent Mode")

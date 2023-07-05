@@ -14,12 +14,7 @@
 # limitations under the License.
 #
 """
-APP Cloud Connect
+Cloud Connect library
 """
-import os
 
-from .common.lib_util import register_cacert_locater
-
-register_cacert_locater(os.path.join(os.path.dirname(__file__), 'core', 'cacerts'))
-
-__version__ = '2.0.2'
+__version__ = "3.1.3"

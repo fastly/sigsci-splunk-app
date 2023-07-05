@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from jinja2 import Template
 import re
+
+from jinja2 import Template
 
 # This pattern matches the template with only one token inside like "{{
 # token1}}", "{{ token2 }"
@@ -29,7 +30,7 @@ def compile_template(template):
         match = re.match(PATTERN, _origin_template)
         if match:
             context_var = context.get(match.groups()[0])
-            return context_var if context_var else ''
+            return context_var if context_var else ""
         return _template.render(context)
 
     return translate_internal

@@ -20,14 +20,14 @@ import splunktalib.rest as rest
 
 
 def _do_rest(uri, session_key):
-    resp, content = rest.splunkd_request(uri, session_key)
+    resp = rest.splunkd_request(uri, session_key)
     if resp is None:
         return None
 
-    if resp.status not in (200, 201):
+    if resp.status_code not in (200, 201):
         return None
 
-    stanza_objs = xdp.parse_conf_xml_dom(content)
+    stanza_objs = xdp.parse_conf_xml_dom(resp.text)
     if not stanza_objs:
         return None
 

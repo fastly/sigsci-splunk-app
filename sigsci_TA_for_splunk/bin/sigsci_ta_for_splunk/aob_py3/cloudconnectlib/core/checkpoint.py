@@ -15,7 +15,7 @@
 #
 import cloudconnectlib.splunktacollectorlib.data_collection.ta_checkpoint_manager as tacm
 from cloudconnectlib.common.log import get_cc_logger
-from cloudconnectlib.core.models import _Token, DictToken
+from cloudconnectlib.core.models import DictToken, _Token
 
 logger = get_cc_logger()
 
@@ -24,7 +24,7 @@ class CheckpointManagerAdapter(tacm.TACheckPointMgr):
     """Wrap TACheckPointMgr for custom usage"""
 
     def __init__(self, namespaces, content, meta_config, task_config):
-        super(CheckpointManagerAdapter, self).__init__(meta_config, task_config)
+        super().__init__(meta_config, task_config)
         if isinstance(namespaces, (list, tuple)):
             self.namespaces = (_Token(t) for t in namespaces)
         else:
@@ -36,16 +36,15 @@ class CheckpointManagerAdapter(tacm.TACheckPointMgr):
 
     def save(self, ctx):
         """Save checkpoint"""
-        super(CheckpointManagerAdapter, self).update_ckpt(
-            ckpt=self.content.render(ctx),
-            namespaces=self._namespaces_for(ctx)
+        super().update_ckpt(
+            ckpt=self.content.render(ctx), namespaces=self._namespaces_for(ctx)
         )
 
     def load(self, ctx):
         """Load checkpoint"""
         namespaces = self._namespaces_for(ctx)
-        checkpoint = super(CheckpointManagerAdapter, self).get_ckpt(namespaces)
+        checkpoint = super().get_ckpt(namespaces)
         if checkpoint is None:
-            logger.info('No existing checkpoint found')
+            logger.info("No existing checkpoint found")
             checkpoint = {}
         return checkpoint

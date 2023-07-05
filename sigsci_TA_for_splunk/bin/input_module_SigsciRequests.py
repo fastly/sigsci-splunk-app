@@ -1,5 +1,6 @@
 # encoding = utf-8
 from timeit import default_timer as timer
+from datetime import datetime
 from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time
 
 '''
@@ -63,34 +64,30 @@ def collect_events(helper, ew):
         last_name = f"requests_last_until_time_{current_site}"
         last_run_until = helper.get_check_point(last_name)
         helper.log_info(f"last_run_until: {last_run_until}")
+
+
+        # CHANGE ----------
         if last_run_until is None:
-            (
-                until_time,
-                from_time,
-                from_time_friendly,
-                until_time_friendly
-            ) = get_from_and_until_times(delta, five_min_offset=True)
+            helper.log_info("get_from_until")
+            until_time, from_time = get_from_and_until_times(delta, five_min_offset=True)
         else:
-            (
-                until_time,
-                from_time,
-                from_time_friendly,
-                until_time_friendly
-            ) = get_until_time(last_run_until, delta, five_min_offset=True)
+            helper.log_info("get_until")
+            until_time, from_time = get_until_time(last_run_until, delta, five_min_offset=True)
+
         if from_time is None:
-            helper.log_info(f"{last_run_until} >= current now time, skipping run")
+            helper.log_info(f"{last_run_until} >= current now, skipping run test")
             return
+        
         if from_time >= until_time:
             helper.save_check_point(last_name, from_time)
-            helper.log_info(
-                f"from_time {from_time} >= until_time {until_time}, skipping run"
-            )
+            helper.log_info(f"from_time {from_time} >= until_time {until_time}, skipping run")
             return
-        helper.save_check_point(last_name, until_time)
-        helper.log_info("SiteName: %s" % site_name)
 
-        helper.log_info(f"Start Period: {from_time_friendly}")
-        helper.log_info(f"End Period: {until_time_friendly}")
+        helper.log_info("SiteName: %s" % site_name)
+        helper.log_info(f"Start Period: {datetime.fromtimestamp(from_time)} UTC")
+        helper.log_info(f"End Period: {datetime.fromtimestamp(until_time)} UTC")
+        # CHANGE END ----------
+
         input_name = helper.get_input_stanza_names()
         single_name = ""
 
@@ -111,7 +108,7 @@ def collect_events(helper, ew):
             f"/sites/{site_name}/feed/requests?"
             f"from={from_time}&until={until_time}"
         )
-        helper.log_info("Pulling requests from requests API")
+        helper.log_info("Pulling requests from requests API")   
         config = Config(
             url=url,
             api_host=api_host,
@@ -127,13 +124,15 @@ def collect_events(helper, ew):
             'x-api-token': global_api_token,
             'User-Agent': config.user_agent_string
         }
+
         all_requests = get_results("Requests", helper, config)
+
         total_requests = len(all_requests)
         helper.log_info("Total Requests Pulled: %s" % total_requests)
         write_start = timer()
         for current_event in all_requests:
             if key is None:
-                source_index = helper.get_output_index()
+                # source_index = helper.get_output_index()
                 source_type = helper.get_sourcetype()
                 event = helper.new_event(
                     source=single_name,
@@ -157,24 +156,25 @@ def collect_events(helper, ew):
 
             try:
                 ew.write_event(event)
+                helper.save_check_point(last_name, until_time)
             except Exception as e:
                 helper.log_error(event)
                 raise e
+            
         write_end = timer()
         write_time = write_end - write_start
         write_time_result = round(write_time, 2)
-        helper.log_info("Total Event Output Time: %s seconds"
-                        % write_time_result)
+        helper.log_info("Total Event Output Time: %s seconds" % write_time_result)
 
     # If multiple inputs configured it creates an array of values and the
     # script only gets called once per Input configuration
     all_sites = helper.get_arg('site_api_name')
     time_deltas = helper.get_arg('interval')
     helper.log_info(f"interval: {time_deltas}")
+
     if type(all_sites) is dict:
         helper.log_info("run_type: Sequential")
-        for active_input in all_sites:
-            site = all_sites[active_input]
+        for active_input, site in all_sites.items():
             time_delta = int(time_deltas[active_input])
             helper.log_info("site: %s" % site)
             pull_requests(

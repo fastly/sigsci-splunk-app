@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
 import hashlib
+import json
 
 
 def load_schema_file(schema_file):
@@ -64,4 +64,3 @@ class UCCException(Exception):
     """
 
     pass
-
