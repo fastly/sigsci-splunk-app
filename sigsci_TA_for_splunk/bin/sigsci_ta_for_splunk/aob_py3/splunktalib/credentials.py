@@ -104,14 +104,12 @@ class CredentialManager:
             "password": password,
         }
 
-        response, content = rest.splunkd_request(
-            eid, None, method="POST", data=postargs
-        )
+        response = rest.splunkd_request(eid, None, method="POST", data=postargs)
 
-        if response is None and content is None:
+        if response is None:
             raise CredException("Get session key failed.")
 
-        xml_obj = xdm.parseString(content)
+        xml_obj = xdm.parseString(response.text)
         session_nodes = xml_obj.getElementsByTagName("sessionKey")
         if not session_nodes:
             raise CredException("Invalid username or password.")
@@ -165,13 +163,13 @@ class CredentialManager:
         except CredException:
             payload = {"password": password}
             endpoint = self._get_endpoint(name)
-            response, _ = rest.splunkd_request(
+            response = rest.splunkd_request(
                 endpoint, self._session_key, method="POST", data=payload
             )
-            if not response or response.status not in (200, 201):
+            if not response or response.status_code not in (200, 201):
                 raise CredException(
                     "Unable to update password for username={}, status={}".format(
-                        name, response.status
+                        name, response.status_code
                     )
                 )
 
@@ -188,10 +186,10 @@ class CredentialManager:
         }
 
         endpoint = self._get_endpoint(name)
-        resp, content = rest.splunkd_request(
+        resp = rest.splunkd_request(
             endpoint, self._session_key, method="POST", data=payload
         )
-        if not resp or resp.status not in (200, 201, "200", "201"):
+        if not resp or resp.status_code not in (200, 201):
             raise CredException("Failed to encrypt username {}".format(name))
 
     def delete(self, name, throw=False):
@@ -236,14 +234,12 @@ class CredentialManager:
         """
 
         endpoint = self._get_endpoint(name)
-        response, content = rest.splunkd_request(
-            endpoint, self._session_key, method="DELETE"
-        )
+        response = rest.splunkd_request(endpoint, self._session_key, method="DELETE")
 
-        if response is not None and response.status in (404, "404"):
+        if response is not None and response.status_code == 404:
             if throw:
                 raise CredNotFound("Credential stanza not exits - {}".format(name))
-        elif not response or response.status not in (200, 201, "200", "201"):
+        elif not response or response.status_code not in (200, 201):
             if throw:
                 raise CredException(
                     "Failed to delete credential stanza {}".format(name)
@@ -312,11 +308,9 @@ class CredentialManager:
         """
 
         endpoint = self._get_endpoint()
-        response, content = rest.splunkd_request(
-            endpoint, self._session_key, method="GET"
-        )
-        if response and response.status in (200, 201, "200", "201") and content:
-            return xdp.parse_conf_xml_dom(content)
+        response = rest.splunkd_request(endpoint, self._session_key, method="GET")
+        if response and response.status_code in (200, 201) and response.text:
+            return xdp.parse_conf_xml_dom(response.text)
         raise CredException("Failed to get credentials")
 
     def get_clear_password(self, name=None):

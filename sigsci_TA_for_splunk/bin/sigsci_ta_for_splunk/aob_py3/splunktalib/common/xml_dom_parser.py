@@ -23,7 +23,6 @@ def parse_conf_xml_dom(xml_content):
     """
     @xml_content: XML DOM from splunkd
     """
-    xml_content = xml_content.decode("utf-8")
     m = re.search(r'xmlns="([^"]+)"', xml_content)
     ns = m.group(1)
     m = re.search(r'xmlns:s="([^"]+)"', xml_content)

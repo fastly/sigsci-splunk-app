@@ -37,7 +37,7 @@ input_name = "input_name"
 input_data = "input_data"
 interval = "interval"
 data = "data"
-batch_size = 'batch_size'
+batch_size = "batch_size"
 time_fmt = "%Y-%m-%dT%H:%M:%S"
 utc_time_fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
 
@@ -45,9 +45,9 @@ utc_time_fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
 checkpoint_storage_type = "builtin_system_checkpoint_storage_type"
 
 # Possible values for checkpoint storage type
-checkpoint_auto = 'auto'
-checkpoint_kv_storage = 'kv_store'
-checkpoint_file = 'file'
+checkpoint_auto = "auto"
+checkpoint_kv_storage = "kv_store"
+checkpoint_file = "file"
 
 # For cache file
 use_cache_file = "builtin_system_use_cache_file"

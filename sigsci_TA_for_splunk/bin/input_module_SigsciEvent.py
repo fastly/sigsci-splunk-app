@@ -2,6 +2,7 @@
 from timeit import default_timer as timer
 import requests
 import json
+from datetime import datetime
 from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time
 
 '''
@@ -49,7 +50,7 @@ def validate_input(helper, definition):
 
 def collect_events(helper, ew):
     start = timer()
-    # loglevel = helper.get_log_level()
+    loglevel = helper.get_log_level()
     # Proxy setting configuration
     # proxy_settings = helper.get_proxy()
     global_email = helper.get_global_setting("email")
@@ -58,31 +59,21 @@ def collect_events(helper, ew):
     api_host = 'https://dashboard.signalsciences.net'
     helper.log_info("email: %s" % global_email)
     helper.log_info("corp: %s" % global_corp_api_name)
-    python_requests_version = requests.__version__
-    user_agent_version = "1.0.33"
-    user_agent_string = (
-        f"TA-sigsci-waf/{user_agent_version} "
-        f"(PythonRequests {python_requests_version})"
-    )
 
     def pull_events(current_site, delta, key=None):
         site_name = current_site
-        last_name = f"requests_last_until_time_{current_site}"
+        last_name = f"events_last_until_time_{current_site}"
         last_run_until = helper.get_check_point(last_name)
         helper.log_info(f"last_run_until: {last_run_until}")
         if last_run_until is None:
             (
                 until_time,
-                from_time,
-                from_time_friendly,
-                until_time_friendly
+                from_time
             ) = get_from_and_until_times(delta, five_min_offset=False)
         else:
             (
                 until_time,
-                from_time,
-                from_time_friendly,
-                until_time_friendly
+                from_time
             ) = get_until_time(last_run_until, delta, five_min_offset=False)
         if from_time is None or from_time > until_time:
             helper.log_info(f"{from_time} >= current now time, skipping run")
@@ -96,8 +87,8 @@ def collect_events(helper, ew):
         helper.save_check_point(last_name, until_time)
         helper.log_info("SiteName: %s" % site_name)
 
-        helper.log_info(f"Start Period: {from_time_friendly}")
-        helper.log_info(f"End Period: {until_time_friendly}")
+        helper.log_info(f"Start Period: {datetime.fromtimestamp(from_time)}")
+        helper.log_info(f"End Period: {datetime.fromtimestamp(until_time)}")
 
         input_name = helper.get_input_stanza_names()
         single_name = ""
@@ -140,9 +131,10 @@ def collect_events(helper, ew):
         helper.log_info("Total Events Pulled: %s" % total_requests)
         write_start = timer()
         for current_event in all_events:
-            # helper.log_debug(current_event)
-            # helper.log_info(f"data={event_data}")
-            current_event = json.dumps(current_event)
+            helper.log_info(type(current_event))
+            helper.log_debug(current_event)
+            helper.log_info(f"json: {current_event}")
+            helper.log_info(type(current_event))
             if key is None:
                 source_type = helper.get_sourcetype()
                 helper.log_info("Concurrent Mode")
@@ -196,8 +188,6 @@ def collect_events(helper, ew):
     # If multiple inputs configured it creates an array of values and the
     # script only gets called once per Input configuration
 
-    # host_test = helper.get_arg('Host')
-    # helper.log_info("Host: %s" % host_test)
     all_sites = helper.get_arg('site_api_name')
     time_deltas = helper.get_arg('interval')
     helper.log_info(f"interval: {time_deltas}")

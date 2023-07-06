@@ -16,22 +16,20 @@
 """
 Data Loader main entry point
 """
-
-
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
-import queue
-import os.path as op
 import configparser
+import os.path as op
+import queue
 
+from solnlib import log
+from solnlib import timer_queue as tq
 from splunktalib.concurrent import concurrent_executor as ce
-from splunktalib import timer_queue as tq
 from splunktalib.schedule import job as sjob
-from splunktalib.common import log
+
+# Global logger
+logger = log.Logs().get_logger("util")
 
 
-class TADataLoader(object):
+class TADataLoader:
     """
     Data Loader boots all underlying facilities to handle data collection
     """
@@ -63,7 +61,7 @@ class TADataLoader(object):
         self._executor.start()
         self._timer_queue.start()
         self._scheduler.start()
-        log.logger.info("TADataLoader started.")
+        logger.info("TADataLoader started.")
 
         def _enqueue_io_job(job):
             job_props = job.get_props()
@@ -71,8 +69,7 @@ class TADataLoader(object):
             self.run_io_jobs((real_job,))
 
         for job in jobs:
-            j = sjob.Job(_enqueue_io_job, {"real_job": job},
-                         job.get_interval())
+            j = sjob.Job(_enqueue_io_job, {"real_job": job}, job.get_interval())
             self._scheduler.add_jobs((j,))
 
         self._wait_for_tear_down()
@@ -81,10 +78,10 @@ class TADataLoader(object):
             job.stop()
 
         self._scheduler.tear_down()
-        self._timer_queue.tear_down()
+        self._timer_queue.stop()
         self._executor.tear_down()
         self._event_writer.tear_down()
-        log.logger.info("DataLoader stopped.")
+        logger.info("DataLoader stopped.")
 
     def _wait_for_tear_down(self):
         wakeup_q = self._wakeup_queue
@@ -95,13 +92,13 @@ class TADataLoader(object):
                 pass
             else:
                 if go_exit:
-                    log.logger.info("DataLoader got stop signal")
+                    logger.info("DataLoader got stop signal")
                     self._stopped = True
                     break
 
     def tear_down(self):
         self._wakeup_queue.put(True)
-        log.logger.info("DataLoader is going to stop.")
+        logger.info("DataLoader is going to stop.")
 
     def stopped(self):
         return self._stopped
@@ -117,8 +114,7 @@ class TADataLoader(object):
         @return: AsyncResult
         """
 
-        return self._executor.run_compute_func_async(func, args,
-                                                     kwargs, callback)
+        return self._executor.run_compute_func_async(func, args, kwargs, callback)
 
     def add_timer(self, callback, when, interval):
         return self._timer_queue.add_timer(callback, when, interval)
@@ -135,12 +131,11 @@ class TADataLoader(object):
     @staticmethod
     def _read_default_settings():
         cur_dir = op.dirname(op.abspath(__file__))
-        setting_file = op.join(cur_dir,"../../../","splunktalib", "setting.conf")
+        setting_file = op.join(cur_dir, "../../../", "splunktalib", "setting.conf")
         parser = configparser.ConfigParser()
         parser.read(setting_file)
         settings = {}
-        keys = ("process_size", "thread_min_size", "thread_max_size",
-                "task_queue_size")
+        keys = ("process_size", "thread_min_size", "thread_max_size", "task_queue_size")
         for option in keys:
             try:
                 settings[option] = parser.get("global", option)
@@ -151,20 +146,19 @@ class TADataLoader(object):
                 settings[option] = int(settings[option])
             except ValueError:
                 settings[option] = -1
-        log.logger.debug("settings: %s", settings)
+        logger.debug("settings: %s", settings)
         return settings
 
 
-class GlobalDataLoader(object):
-    """ Singleton, inited when started"""
+class GlobalDataLoader:
+    """Singleton, inited when started"""
 
     __instance = None
 
     @staticmethod
     def get_data_loader(scheduler, writer):
         if GlobalDataLoader.__instance is None:
-            GlobalDataLoader.__instance = TADataLoader(
-                scheduler, writer)
+            GlobalDataLoader.__instance = TADataLoader(scheduler, writer)
         return GlobalDataLoader.__instance
 
     @staticmethod

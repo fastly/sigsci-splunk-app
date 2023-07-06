@@ -1,5 +1,8 @@
+import os
 import sys
 import platform
+
+from typing import Union
 
 
 __all__ = ['install', 'NullFinder', 'Protocol']
@@ -8,6 +11,7 @@ __all__ = ['install', 'NullFinder', 'Protocol']
 try:
     from typing import Protocol
 except ImportError:  # pragma: no cover
+    # Python 3.7 compatibility
     from typing_extensions import Protocol  # type: ignore
 
 
@@ -69,3 +73,10 @@ def pypy_partial(val):
     """
     is_pypy = platform.python_implementation() == 'PyPy'
     return val + is_pypy
+
+
+if sys.version_info >= (3, 9):
+    StrPath = Union[str, os.PathLike[str]]
+else:
+    # PathLike is only subscriptable at runtime in 3.9+
+    StrPath = Union[str, "os.PathLike[str]"]  # pragma: no cover

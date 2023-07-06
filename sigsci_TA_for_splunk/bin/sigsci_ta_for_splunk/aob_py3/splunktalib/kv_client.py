@@ -159,17 +159,15 @@ class KVClient:
     ):
         headers = {"Content-Type": content_type}
 
-        resp, content = rest.splunkd_request(
-            uri, self._session_key, method, headers, data
-        )
-        if resp is None and content is None:
+        resp = rest.splunkd_request(uri, self._session_key, method, headers, data)
+        if resp is None:
             raise KVException("Failed uri={}, data={}".format(uri, data))
 
-        if resp.status in (200, 201):
-            return content
-        elif resp.status == 409:
+        if resp.status_code in (200, 201):
+            return resp.text
+        elif resp.status_code == 409:
             raise KVAlreadyExists("{}-{} already exists".format(uri, data))
-        elif resp.status == 404:
+        elif resp.status_code == 404:
             raise KVNotExists("{}-{} not exists".format(uri, data))
         else:
             raise KVException(

@@ -36,30 +36,28 @@ def content_request(uri, session_key, method, payload, err_msg):
     ConfRequestException
     """
 
-    resp, content = rest.splunkd_request(
-        uri, session_key, method, data=payload, retry=3
-    )
-    if resp is None and content is None:
+    resp = rest.splunkd_request(uri, session_key, method, data=payload, retry=3)
+    if resp is None:
         return None
 
-    if resp.status >= 200 and resp.status <= 204:
-        return content
+    if resp.status_code >= 200 and resp.status_code <= 204:
+        return resp.text
     else:
         msg = "{}, status={}, reason={}, detail={}".format(
             err_msg,
-            resp.status,
+            resp.status_code,
             resp.reason,
-            content.decode("utf-8"),
+            resp.text,
         )
 
-        if not (method == "GET" and resp.status == 404):
+        if not (method == "GET" and resp.status_code == 404):
             log.logger.error(msg)
 
-        if resp.status == 404:
+        if resp.status_code == 404:
             raise ConfNotExistsException(msg)
-        if resp.status == 409:
+        if resp.status_code == 409:
             raise ConfExistsException(msg)
         else:
-            if content and "already exists" in content:
+            if resp.text and "already exists" in resp.text:
                 raise ConfExistsException(msg)
             raise ConfRequestException(msg)

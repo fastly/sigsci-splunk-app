@@ -1,6 +1,5 @@
 import json
 from datetime import datetime, timedelta
-import calendar
 from timeit import default_timer as timer
 import time
 import requests
@@ -90,16 +89,18 @@ def get_from_and_until_times(delta, five_min_offset=False):
         until_time = datetime.utcnow() - timedelta(minutes=5)
     else:
         until_time = datetime.utcnow()
-
     from_time = until_time - timedelta(seconds=delta)
     if five_min_offset:
         until_time = until_time.replace(second=0)
         from_time = from_time.replace(second=0)
-    until_time = calendar.timegm(until_time.utctimetuple())
-    from_time = calendar.timegm(from_time.utctimetuple())
-    from_time_friendly = datetime.fromtimestamp(from_time)
-    until_time_friendly = datetime.fromtimestamp(until_time)
-    return until_time, from_time, from_time_friendly, until_time_friendly
+    until_time = int(until_time.timestamp())
+    from_time = int(from_time.timestamp())
+    return until_time, from_time
+
+def timestamp_sanitise(_time):
+    new_time = datetime.fromtimestamp(_time).replace(second=0)
+    new_time = int(new_time.timestamp())
+    return new_time
 
 
 def get_until_time(from_time, delta, five_min_offset=False):
@@ -108,23 +109,18 @@ def get_until_time(from_time, delta, five_min_offset=False):
         current_time_offset = current_time_offset.replace(second=0)
     else:
         current_time_offset = datetime.utcnow()
-    current_time_offset = calendar.timegm(current_time_offset.utctimetuple())
+    current_time_offset = int(datetime.timestamp(current_time_offset))
+    
     new_until_time = from_time + delta
+    new_until_time = timestamp_sanitise(new_until_time)
+    new_from_time = timestamp_sanitise(from_time)
+    
     if from_time > current_time_offset:
-        from_time = None
-        until_time = current_time_offset
-    else:
-        if new_until_time > current_time_offset or current_time_offset > new_until_time:
-            until_time = current_time_offset
-        else:
-            until_time = new_until_time
-    if from_time is not None and until_time is not None:
-        from_time_friendly = datetime.fromtimestamp(from_time)
-        until_time_friendly = datetime.fromtimestamp(until_time)
-    else:
-        from_time_friendly = None
-        until_time_friendly = None
-    return until_time, from_time, from_time_friendly, until_time_friendly
+        return None, None
+    
+    if new_until_time > current_time_offset:
+        new_until_time = current_time_offset
+    return new_until_time, new_from_time
 
 
 def get_results(title, helper, config):
@@ -164,38 +160,39 @@ def get_results(title, helper, config):
             f"Number of {title} for Page: {number_requests_per_page}"
         )
 
-        for request in response['data']:
-            data = json.dumps(request)
-            data = json.loads(data)
+        for data in response['data']:
+            
             event_id = data["id"]
             if event_id not in config.event_ids:
                 config.event_ids.append(event_id)
             else:
                 continue
-            headers_out = data['headersOut']
-            headers_in = data['headersIn']
 
-            if headers_out is not None:
-                new_header_out = []
-                for header in headers_out:
-                    header_data = {
-                        header[0]: header[1]
-                    }
-                    new_header_out.append(header_data)
+            if 'headersOut' in data:
+                headers_out = data['headersOut']
+                if headers_out is not None:
+                    new_header_out = []
+                    for header in headers_out:
+                        header_data = {
+                            header[0]: header[1]
+                        }
+                        new_header_out.append(header_data)
+                    data['headersOut'] = new_header_out
 
-                data['headersOut'] = new_header_out
-
-            if headers_in is not None:
-                new_header_in = []
-                for header in headers_in:
-                    header_data = {
-                        header[0]: header[1]
-                    }
-                    new_header_in.append(header_data)
-                data['headersIn'] = new_header_in
+            if 'headersIn' in data:
+                headers_in = data['headersIn']
+                if headers_in is not None:
+                    new_header_in = []
+                    for header in headers_in:
+                        header_data = {
+                            header[0]: header[1]
+                        }
+                        new_header_in.append(header_data)
+                    data['headersIn'] = new_header_in
 
             data = json.dumps(data)
             config.events.append(data)
+
         next_data = response.get("next")
         if next_data is not None:
             next_url = next_data.get("uri")
@@ -260,9 +257,8 @@ class Config:
         self.global_corp_api_name = global_corp_api_name
         self.current_site = current_site
         self.event_ids = []
-        self.user_agent_version = "1.0.33"
+        self.user_agent_version = "1.0.34"
         self.user_agent_string = (
             f"TA-sigsci-waf/{self.user_agent_version} "
             f"(PythonRequests {requests.__version__})"
         )
-
