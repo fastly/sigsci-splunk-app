@@ -50,7 +50,7 @@ def validate_input(helper, definition):
 
 def collect_events(helper, ew):
     start = timer()
-    # loglevel = helper.get_log_level()
+    loglevel = helper.get_log_level()
     # Proxy setting configuration
     # proxy_settings = helper.get_proxy()
     global_email = helper.get_global_setting("email")
@@ -133,8 +133,6 @@ def collect_events(helper, ew):
         for current_event in all_events:
             helper.log_info(type(current_event))
             helper.log_debug(current_event)
-            # helper.log_info(f"event data={event_data}")
-            # current_event = json.dumps(current_event)
             helper.log_info(f"json: {current_event}")
             helper.log_info(type(current_event))
             if key is None:
@@ -190,8 +188,6 @@ def collect_events(helper, ew):
     # If multiple inputs configured it creates an array of values and the
     # script only gets called once per Input configuration
 
-    # host_test = helper.get_arg('Host')
-    # helper.log_info("Host: %s" % host_test)
     all_sites = helper.get_arg('site_api_name')
     time_deltas = helper.get_arg('interval')
     helper.log_info(f"interval: {time_deltas}")

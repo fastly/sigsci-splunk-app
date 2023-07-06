@@ -66,7 +66,6 @@ def collect_events(helper, ew):
         helper.log_info(f"last_run_until: {last_run_until}")
 
 
-        # CHANGE ----------
         if last_run_until is None:
             helper.log_info("get_from_until")
             until_time, from_time = get_from_and_until_times(delta, five_min_offset=True)
@@ -75,7 +74,7 @@ def collect_events(helper, ew):
             until_time, from_time = get_until_time(last_run_until, delta, five_min_offset=True)
 
         if from_time is None:
-            helper.log_info(f"{last_run_until} >= current now, skipping run test")
+            helper.log_info(f"{last_run_until} >= current now time, skipping run")
             return
         
         if from_time >= until_time:
@@ -86,7 +85,6 @@ def collect_events(helper, ew):
         helper.log_info("SiteName: %s" % site_name)
         helper.log_info(f"Start Period: {datetime.fromtimestamp(from_time)} UTC")
         helper.log_info(f"End Period: {datetime.fromtimestamp(until_time)} UTC")
-        # CHANGE END ----------
 
         input_name = helper.get_input_stanza_names()
         single_name = ""
@@ -132,7 +130,6 @@ def collect_events(helper, ew):
         write_start = timer()
         for current_event in all_requests:
             if key is None:
-                # source_index = helper.get_output_index()
                 source_type = helper.get_sourcetype()
                 event = helper.new_event(
                     source=single_name,
@@ -141,7 +138,6 @@ def collect_events(helper, ew):
                     data=current_event
                 )
             else:
-                # helper.log_info("input_type=multi")
                 indexes = helper.get_output_index()
                 current_index = indexes[key]
                 types = helper.get_sourcetype()
