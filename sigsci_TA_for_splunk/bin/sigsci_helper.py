@@ -161,8 +161,6 @@ def get_results(title, helper, config):
         )
 
         for data in response['data']:
-            # data = json.dumps(request)
-            # data = json.loads(data)
             
             event_id = data["id"]
             if event_id not in config.event_ids:
