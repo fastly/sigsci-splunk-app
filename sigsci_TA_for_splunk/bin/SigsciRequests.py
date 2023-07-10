@@ -47,7 +47,7 @@ class ModInputSigsciRequests(modinput_wrapper.base_modinput.BaseModInput):
         For other input types, arguments should be get from input_module. Defining new input types could be easier.
         """
         scheme.add_argument(smi.Argument("site_api_name", title="Site API Name",
-                                         description="This is the API Name of the site to pull date from. This should not be a URL.",
+                                         description="This is the API Name of the site to pull request data from. This should not be a URL.",
                                          required_on_create=True,
                                          required_on_edit=False))
         return scheme
