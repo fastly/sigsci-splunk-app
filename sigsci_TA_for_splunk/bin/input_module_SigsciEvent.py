@@ -131,10 +131,7 @@ def collect_events(helper, ew):
         helper.log_info("Total Events Pulled: %s" % total_requests)
         write_start = timer()
         for current_event in all_events:
-            helper.log_info(type(current_event))
             helper.log_debug(current_event)
-            helper.log_info(f"json: {current_event}")
-            helper.log_info(type(current_event))
             if key is None:
                 source_type = helper.get_sourcetype()
                 helper.log_info("Concurrent Mode")
