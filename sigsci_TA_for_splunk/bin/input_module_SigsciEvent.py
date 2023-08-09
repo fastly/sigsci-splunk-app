@@ -62,7 +62,7 @@ def collect_events(helper, ew):
             )
         else:
             (until_time, from_time) = get_until_time(
-                last_run_until, delta, five_min_offset=False
+                helper, last_run_until, delta, five_min_offset=False
             )
         if from_time is None or from_time > until_time:
             helper.log_info(f"{from_time} >= current now time, skipping run")
