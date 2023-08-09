@@ -266,7 +266,7 @@ class Config:
         self.global_corp_api_name = global_corp_api_name
         self.current_site = current_site
         self.event_ids = []
-        self.user_agent_version = "1.0.35"
+        self.user_agent_version = "1.0.36"
         self.user_agent_string = (
             f"TA-sigsci-waf/{self.user_agent_version} "
             f"(PythonRequests {requests.__version__})"
