@@ -61,7 +61,7 @@ def collect_events(helper, ew):
                 delta, five_min_offset=True
             )
         else:
-            helper.log_debug(f"last_run_until found in state: {last_run_until}")
+            helper.log_info(f"last_run_until found in state: {last_run_until}")
             helper.log_debug("get_until")
             until_time, from_time = get_until_time(
                 helper, last_run_until, delta, five_min_offset=True
