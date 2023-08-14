@@ -36,7 +36,7 @@ def check_response(
         base_msg["msg"] = "internal-error"
     elif code == 401:
         base_msg["error"] = (
-            "Unauthorized. Incorrect credentials or lack " "of permissions"
+            "Unauthorized. Incorrect credentials or lack of permissions"
         )
         base_msg["msg"] = "unauthorized"
     elif 400 <= code <= 599 and code != 400 and code != 500 and code != 401:
@@ -126,8 +126,8 @@ def get_until_time(helper, from_time, interval, five_min_offset=False):
     # The default time to look at until, either now or five minutes ago.
     _until_time = current_time_offset
     _rslt_until = int(datetime.timestamp(_until_time))
-    # If we are futher back than 24 hours reset the clock.
 
+    # If we are futher back than 24 hours reset the clock.
     if ft_diff > timedelta(hours=24):
         helper.log_info("Adjusting from_time to 24 hours ago")
 
