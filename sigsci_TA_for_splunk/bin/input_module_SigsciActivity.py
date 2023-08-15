@@ -4,12 +4,12 @@ import json
 from datetime import datetime
 from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time
 
-'''
+"""
     IMPORTANT
     Edit only the validate_input and collect_events functions.
     Do not edit any other part in this file.
     This file is generated only once when creating the modular input.
-'''
+"""
 
 
 # def use_single_instance_mode():
@@ -30,7 +30,7 @@ def collect_events(helper, ew):
     global_email = helper.get_global_setting("email")
     global_api_token = helper.get_global_setting("api_token")
     global_corp_api_name = helper.get_global_setting("corp_api_name")
-    api_host = 'https://dashboard.signalsciences.net'
+    api_host = "https://dashboard.signalsciences.net"
     helper.log_info("email: %s" % global_email)
     helper.log_info("corp: %s" % global_corp_api_name)
 
@@ -38,15 +38,13 @@ def collect_events(helper, ew):
         last_run_until = helper.get_check_point("activity_last_until_time")
         helper.log_info(f"last_run_until: {last_run_until}")
         if last_run_until is None:
-            (
-                until_time,
-                from_time
-            ) = get_from_and_until_times(delta, five_min_offset=False)
+            (until_time, from_time) = get_from_and_until_times(
+                delta, five_min_offset=False
+            )
         else:
-            (
-                until_time,
-                from_time
-            ) = get_until_time(last_run_until, delta, five_min_offset=False)
+            (until_time, from_time) = get_until_time(
+                helper, last_run_until, delta, five_min_offset=False
+            )
         if from_time is None:
             helper.log_info(f"{last_run_until} >= current now time, skipping run")
             return
@@ -88,13 +86,13 @@ def collect_events(helper, ew):
             until_time=until_time,
             global_email=global_email,
             global_corp_api_name=global_corp_api_name,
-            current_site='',
+            current_site="",
         )
         config.headers = {
-            'Content-type': 'application/json',
-            'x-api-user': global_email,
-            'x-api-token': global_api_token,
-            'User-Agent': config.user_agent_string
+            "Content-type": "application/json",
+            "x-api-user": global_email,
+            "x-api-token": global_api_token,
+            "User-Agent": config.user_agent_string,
         }
         helper.log_info("Pulling results from Corp Activity API")
         all_events = get_results("Activity Events", helper, config)
@@ -122,7 +120,7 @@ def collect_events(helper, ew):
                     source=single_name,
                     index=helper.get_output_index(),
                     sourcetype=source_type,
-                    data=current_event
+                    data=current_event,
                 )
             else:
                 indexes = helper.get_output_index()
@@ -139,7 +137,7 @@ def collect_events(helper, ew):
                     source=single_name,
                     index=current_index,
                     sourcetype=source_type,
-                    data=current_event
+                    data=current_event,
                 )
 
             try:
@@ -149,13 +147,11 @@ def collect_events(helper, ew):
         write_end = timer()
         write_time = write_end - write_start
         write_time_result = round(write_time, 2)
-        helper.log_info(
-            f"Total Corp Activity Output Time: {write_time_result} seconds"
-        )
+        helper.log_info(f"Total Corp Activity Output Time: {write_time_result} seconds")
 
     # If multiple inputs configured it creates an array of values and the
     # script only gets called once per Input configuration
-    time_deltas = helper.get_arg('interval')
+    time_deltas = helper.get_arg("interval")
     helper.log_info(f"interval: {time_deltas}")
     if type(time_deltas) is dict:
         helper.log_info("run_type: Sequential")
@@ -163,16 +159,11 @@ def collect_events(helper, ew):
             time_delta = time_deltas[active_input]
             time_delta = int(time_delta)
             helper.log_info("time_delta: %s" % time_delta)
-            pull_events(
-                delta=time_delta,
-                key=active_input
-            )
+            pull_events(delta=time_delta, key=active_input)
     else:
         helper.log_info("Run Type: Concurrent")
         helper.log_info("time_delta: %s" % time_deltas)
-        pull_events(
-            delta=int(time_deltas)
-        )
+        pull_events(delta=int(time_deltas))
     helper.log_info("Finished Pulling Corp Activity")
     end = timer()
     total_time = end - start

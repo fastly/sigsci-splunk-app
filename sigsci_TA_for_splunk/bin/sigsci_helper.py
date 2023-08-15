@@ -1,18 +1,18 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from timeit import default_timer as timer
 import time
 import requests
 
 
 def check_response(
-        code,
-        response_text,
-        global_email,
-        global_corp_api_name,
-        from_time=None,
-        until_time=None,
-        current_site=None
+    code,
+    response_text,
+    global_email,
+    global_corp_api_name,
+    from_time=None,
+    until_time=None,
+    current_site=None,
 ):
     success = False
     base_msg = {
@@ -35,8 +35,9 @@ def check_response(
         base_msg["error"] = "Internal Server Error"
         base_msg["msg"] = "internal-error"
     elif code == 401:
-        base_msg["error"] = "Unauthorized. Incorrect credentials or lack " \
-                            "of permissions"
+        base_msg["error"] = (
+            "Unauthorized. Incorrect credentials or lack of permissions"
+        )
         base_msg["msg"] = "unauthorized"
     elif 400 <= code <= 599 and code != 400 and code != 500 and code != 401:
         base_msg["error"] = "Unknown Error"
@@ -59,23 +60,19 @@ def get_request_data(url, headers, helper):
             verify=True,
             cert=None,
             timeout=None,
-            use_proxy=True
+            use_proxy=True,
         )
         response_code = response_raw.status_code
         response_error = response_raw.text
         try:
             data = json.loads(response_raw.text)
         except Exception as error:
-            data = {
-                "data": []
-            }
+            data = {"data": []}
             helper.log_info("Unable to parse API Response")
             helper.log_error(response_error)
             helper.log_error(error)
     except Exception as error:
-        data = {
-            "data": []
-        }
+        data = {"data": []}
         helper.log_info("Unable to parse API Response")
         helper.log_error(error)
         response_code = 500
@@ -84,43 +81,65 @@ def get_request_data(url, headers, helper):
     return data, response_code, response_error
 
 
-def get_from_and_until_times(delta, five_min_offset=False):
-    if five_min_offset:
-        until_time = datetime.utcnow() - timedelta(minutes=5)
-    else:
-        until_time = datetime.utcnow()
-    from_time = until_time - timedelta(seconds=delta)
-    if five_min_offset:
-        until_time = until_time.replace(second=0)
-        from_time = from_time.replace(second=0)
-    until_time = int(until_time.timestamp())
-    from_time = int(from_time.timestamp())
-    return until_time, from_time
-
 def timestamp_sanitise(_time):
-    new_time = datetime.fromtimestamp(_time).replace(second=0)
+    new_time = datetime.utcfromtimestamp(_time).replace(second=0)
     new_time = int(new_time.timestamp())
     return new_time
 
 
-def get_until_time(from_time, delta, five_min_offset=False):
+def get_from_and_until_times(delta, five_min_offset=False):
     if five_min_offset:
-        current_time_offset = datetime.utcnow() - timedelta(minutes=5)
-        current_time_offset = current_time_offset.replace(second=0)
+        until_time = datetime.now(timezone.utc) - timedelta(minutes=5)
     else:
-        current_time_offset = datetime.utcnow()
-    current_time_offset = int(datetime.timestamp(current_time_offset))
-    
-    new_until_time = from_time + delta
-    new_until_time = timestamp_sanitise(new_until_time)
-    new_from_time = timestamp_sanitise(from_time)
-    
-    if from_time > current_time_offset:
-        return None, None
-    
-    if new_until_time > current_time_offset:
-        new_until_time = current_time_offset
-    return new_until_time, new_from_time
+        until_time = datetime.now(timezone.utc)
+    from_time = until_time - timedelta(seconds=delta)
+
+    if five_min_offset:
+        until_time = until_time.replace(second=0)
+        from_time = from_time.replace(second=0)
+
+    until_time = int(until_time.timestamp())
+    from_time = int(from_time.timestamp())
+
+    return timestamp_sanitise(until_time), timestamp_sanitise(from_time)
+
+
+def get_until_time(helper, from_time, interval, five_min_offset=False):
+    now = datetime.now(timezone.utc).replace(second=0)
+    interval_timedelta = timedelta(seconds=interval)
+
+    current_time_offset = datetime.now(timezone.utc).replace(second=0)
+
+    if five_min_offset:
+        current_time_offset = current_time_offset - timedelta(minutes=5)
+
+    # Get dt object with UTC timezone.
+    from_time_dt_obj = (
+        datetime.utcfromtimestamp(from_time)
+        .replace(tzinfo=timezone.utc)
+        .replace(second=0)
+    )
+
+    # How far back is the "from time" from now
+    ft_diff = now - from_time_dt_obj
+
+    # The default time to look at until, either now or five minutes ago.
+    _until_time = current_time_offset
+    _rslt_until = int(datetime.timestamp(_until_time))
+
+    # If we are futher back than 24 hours reset the clock.
+    if ft_diff > timedelta(hours=24):
+        helper.log_info("Adjusting from_time to 24 hours ago")
+
+        from_time = now - timedelta(hours=24)
+        from_time.replace(second=0)
+        from_time_int = int(from_time.timestamp())
+
+        return _rslt_until, from_time_int
+
+    from_time_int = int(datetime.timestamp(from_time_dt_obj))
+
+    return _rslt_until, from_time_int
 
 
 def get_results(title, helper, config):
@@ -130,8 +149,9 @@ def get_results(title, helper, config):
         pulled_events = []
         helper.log_info("Processing page %s" % counter)
         start_page = timer()
-        response_result, response_code, response_error = \
-            get_request_data(config.url, config.headers, helper)
+        response_result, response_code, response_error = get_request_data(
+            config.url, config.headers, helper
+        )
 
         pulled, request_details = check_response(
             response_code,
@@ -140,7 +160,7 @@ def get_results(title, helper, config):
             global_corp_api_name=config.global_corp_api_name,
             current_site=config.current_site,
             from_time=config.from_time,
-            until_time=config.until_time
+            until_time=config.until_time,
         )
 
         if not pulled and request_details["msg"] != "rate-limit":
@@ -155,40 +175,33 @@ def get_results(title, helper, config):
         else:
             response = response_result
 
-        number_requests_per_page = len(response['data'])
-        helper.log_info(
-            f"Number of {title} for Page: {number_requests_per_page}"
-        )
+        number_requests_per_page = len(response["data"])
+        helper.log_info(f"Number of {title} for Page: {number_requests_per_page}")
 
-        for data in response['data']:
-            
+        for data in response["data"]:
             event_id = data["id"]
             if event_id not in config.event_ids:
                 config.event_ids.append(event_id)
             else:
                 continue
 
-            if 'headersOut' in data:
-                headers_out = data['headersOut']
+            if "headersOut" in data:
+                headers_out = data["headersOut"]
                 if headers_out is not None:
                     new_header_out = []
                     for header in headers_out:
-                        header_data = {
-                            header[0]: header[1]
-                        }
+                        header_data = {header[0]: header[1]}
                         new_header_out.append(header_data)
-                    data['headersOut'] = new_header_out
+                    data["headersOut"] = new_header_out
 
-            if 'headersIn' in data:
-                headers_in = data['headersIn']
+            if "headersIn" in data:
+                headers_in = data["headersIn"]
                 if headers_in is not None:
                     new_header_in = []
                     for header in headers_in:
-                        header_data = {
-                            header[0]: header[1]
-                        }
+                        header_data = {header[0]: header[1]}
                         new_header_in.append(header_data)
-                    data['headersIn'] = new_header_in
+                    data["headersIn"] = new_header_in
 
             data = json.dumps(data)
             config.events.append(data)
@@ -198,14 +211,12 @@ def get_results(title, helper, config):
             next_url = next_data.get("uri")
         else:
             next_url = None
-        if next_url == '':
+        if next_url == "":
             helper.log_info("Finished Page %s" % counter)
             end_page = timer()
             page_time = end_page - start_page
             page_time_result = round(page_time, 2)
-            helper.log_info(
-                f"Total Page Time: {page_time_result} seconds"
-            )
+            helper.log_info(f"Total Page Time: {page_time_result} seconds")
             loop = False
         elif next_url is not None:
             config.url = config.api_host + next_url
@@ -214,9 +225,7 @@ def get_results(title, helper, config):
             end_page = timer()
             page_time = end_page - start_page
             page_time_result = round(page_time, 2)
-            helper.log_info(
-                f"Total Page Time: {page_time_result} seconds"
-            )
+            helper.log_info(f"Total Page Time: {page_time_result} seconds")
         else:
             loop = False
     return config.events
@@ -237,15 +246,15 @@ class Config:
     event_ids: list
 
     def __init__(
-            self,
-            api_host=None,
-            url=None,
-            headers=None,
-            from_time=None,
-            until_time=None,
-            global_email=None,
-            global_corp_api_name=None,
-            current_site=None,
+        self,
+        api_host=None,
+        url=None,
+        headers=None,
+        from_time=None,
+        until_time=None,
+        global_email=None,
+        global_corp_api_name=None,
+        current_site=None,
     ):
         self.api_host = api_host
         self.url = url
@@ -257,7 +266,7 @@ class Config:
         self.global_corp_api_name = global_corp_api_name
         self.current_site = current_site
         self.event_ids = []
-        self.user_agent_version = "1.0.35"
+        self.user_agent_version = "1.0.36"
         self.user_agent_string = (
             f"TA-sigsci-waf/{self.user_agent_version} "
             f"(PythonRequests {requests.__version__})"
