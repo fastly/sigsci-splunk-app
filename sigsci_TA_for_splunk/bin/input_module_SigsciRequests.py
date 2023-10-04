@@ -1,5 +1,6 @@
 # encoding = utf-8
 from timeit import default_timer as timer
+import time
 from datetime import datetime, timezone, timedelta
 from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time
 
@@ -53,12 +54,12 @@ def collect_events(helper, ew):
         site_name = current_site
         last_name = f"requests_last_until_time_{current_site}"
         last_run_until = helper.get_check_point(last_name)
-
+        
         if last_run_until is None:
             helper.log_info("no last_run_time found in checkpoint state")
             helper.log_debug("get_from_until")
             until_time, from_time = get_from_and_until_times(
-                delta, five_min_offset=True
+                helper, delta, five_min_offset=True
             )
         else:
             helper.log_info(f"last_run_until found in state: {last_run_until}")
@@ -77,9 +78,10 @@ def collect_events(helper, ew):
                 f"from_time {from_time} >= until_time {until_time}, skipping run"
             )
             return
+            
         helper.log_info("SiteName: %s" % site_name)
-        helper.log_info(f"Start Period: {datetime.utcfromtimestamp(from_time)} UTC")
-        helper.log_info(f"End Period: {datetime.utcfromtimestamp(until_time)} UTC")
+        helper.log_info(f"Start Period: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(from_time))}")
+        helper.log_info(f"End Period: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(until_time))}")
 
         input_name = helper.get_input_stanza_names()
         single_name = ""
