@@ -81,11 +81,9 @@ def get_request_data(url, headers, helper):
     return data, response_code, response_error
 
 
+## Dont convert back to a datetime object and just truncate seconds from the timestamp.
 def timestamp_sanitise(_time):
-    new_time = datetime.utcfromtimestamp(_time).replace(second=0)
-    new_time = int(new_time.timestamp())
-    return new_time
-
+    return _time - _time % 60
 
 def get_from_and_until_times(delta, five_min_offset=False):
     if five_min_offset:
