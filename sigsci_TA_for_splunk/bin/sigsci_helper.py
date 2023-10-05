@@ -3,7 +3,6 @@ from datetime import datetime, timedelta, timezone
 from timeit import default_timer as timer
 import time
 import requests
-import sys, os
 
 def check_response(
     code,
@@ -106,6 +105,7 @@ def get_from_and_until_times(helper, delta, five_min_offset=False):
 
     return until_time, from_time
 
+SECONDS_IN_DAY= 24 * 60 * 60
 
 def get_until_time(helper, from_time, interval, five_min_offset=False):
     # Get current epoch time rounded down to nearest minute
@@ -121,9 +121,9 @@ def get_until_time(helper, from_time, interval, five_min_offset=False):
     time_difference = now - from_time
 
     # If the difference is more than 24 hours (in seconds), reset the from_time
-    if time_difference > 24 * 60 * 60:  # 24 hours in seconds
+    if time_difference > SECONDS_IN_DAY:  # 24 hours in seconds
         helper.log_info("Adjusting from_time to 24 hours ago")
-        adjusted_from_time = now - 24 * 60 * 60  # Subtract 24 hours in seconds
+        adjusted_from_time = now - SECONDS_IN_DAY  # Subtract 24 hours in seconds
         helper.log_info(f"Previous Run: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(from_time))}")
         helper.log_info(f"Adjusted from_time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(adjusted_from_time))}")
         return until_time, adjusted_from_time

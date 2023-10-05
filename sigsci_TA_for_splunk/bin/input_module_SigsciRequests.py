@@ -55,6 +55,7 @@ def collect_events(helper, ew):
         last_name = f"requests_last_until_time_{current_site}"
         last_run_until = helper.get_check_point(last_name)
         
+        
         if last_run_until is None:
             helper.log_info("no last_run_time found in checkpoint state")
             helper.log_debug("get_from_until")
@@ -130,6 +131,7 @@ def collect_events(helper, ew):
                 f"No events to write, saving checkpoint to value:{until_time}"
             )
         write_start = timer()
+        event_count = 0 
         for current_event in all_requests:
             if key is None:
                 source_type = helper.get_sourcetype()
@@ -154,13 +156,14 @@ def collect_events(helper, ew):
 
             try:
                 ew.write_event(event)
+                event_count += 1  # increment the count for successful events to not spam debug.
                 helper.save_check_point(last_name, until_time)
-                helper.log_info(f"Event written, saving checkpoint:{until_time}")
             except Exception as e:
                 helper.log_error(f"error writing event: {e}")
                 helper.log_error(event)
                 raise e
-
+        if event_count != 0: # We save the checkpoint earlier on 0 events.
+            helper.log_info(f"{event_count} events written, saving checkpoint: {until_time}")        
         write_end = timer()
         write_time = write_end - write_start
         write_time_result = round(write_time, 2)
