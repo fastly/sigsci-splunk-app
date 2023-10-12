@@ -40,7 +40,7 @@ def collect_events(helper, ew):
         helper.log_info(f"last_run_until: {last_run_until}")
         if last_run_until is None:
             (until_time, from_time) = get_from_and_until_times(
-                delta, five_min_offset=False
+                helper, delta, five_min_offset=False
             )
         else:
             (until_time, from_time) = get_until_time(

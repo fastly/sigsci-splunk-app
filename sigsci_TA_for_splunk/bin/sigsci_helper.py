@@ -224,8 +224,8 @@ class Config:
     url: str
     headers: dict
     events: dict
-    from_time: str
-    until_time: str
+    from_time: int
+    until_time: int
     global_email: str
     global_corp_api_name: str
     current_site: str
