@@ -4,7 +4,6 @@ from timeit import default_timer as timer
 import time
 import requests
 
-
 def check_response(
     code,
     response_text,
@@ -80,67 +79,56 @@ def get_request_data(url, headers, helper):
 
     return data, response_code, response_error
 
-
 def timestamp_sanitise(_time):
-    new_time = datetime.utcfromtimestamp(_time).replace(second=0)
-    new_time = int(new_time.timestamp())
-    return new_time
+    return _time - _time % 60
 
+def get_from_and_until_times(helper, delta, five_min_offset=False):
+    # Get the current epoch time
+    until_time = int(time.time())
+    helper.log_info(f"Time Now: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(int(time.time())))}")
 
-def get_from_and_until_times(delta, five_min_offset=False):
+    
+    # Check if five_min_offset is needed.
     if five_min_offset:
-        until_time = datetime.now(timezone.utc) - timedelta(minutes=5)
-    else:
-        until_time = datetime.now(timezone.utc)
-    from_time = until_time - timedelta(seconds=delta)
+        until_time -= 5 * 60  # Subtract 5 minutes in seconds
 
+    # Always sanitize the until_time irrespective of five_min_offset, 
+    # because it makes sure the timestamp is always aligned to a whole minute boundary.
+    until_time = timestamp_sanitise(until_time)
+
+    # Get the starting time.
+    from_time = until_time - delta
+    
+    # If five_min_offset, then sanitize from_time as well
     if five_min_offset:
-        until_time = until_time.replace(second=0)
-        from_time = from_time.replace(second=0)
+        from_time = timestamp_sanitise(from_time)
 
-    until_time = int(until_time.timestamp())
-    from_time = int(from_time.timestamp())
+    return until_time, from_time
 
-    return timestamp_sanitise(until_time), timestamp_sanitise(from_time)
-
+SECONDS_IN_DAY= 24 * 60 * 60
 
 def get_until_time(helper, from_time, interval, five_min_offset=False):
-    now = datetime.now(timezone.utc).replace(second=0)
-    interval_timedelta = timedelta(seconds=interval)
-
-    current_time_offset = datetime.now(timezone.utc).replace(second=0)
+    # Get current epoch time rounded down to nearest minute
+    now = timestamp_sanitise(int(time.time()))
+    helper.log_info(f"Time Now: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(now))}")
 
     if five_min_offset:
-        current_time_offset = current_time_offset - timedelta(minutes=5)
+        until_time = now - 5 * 60  # Subtract 5 minutes in seconds
+    else:
+        until_time = now
 
-    # Get dt object with UTC timezone.
-    from_time_dt_obj = (
-        datetime.utcfromtimestamp(from_time)
-        .replace(tzinfo=timezone.utc)
-        .replace(second=0)
-    )
+    # Calculate the difference between now and the from_time
+    time_difference = now - from_time
 
-    # How far back is the "from time" from now
-    ft_diff = now - from_time_dt_obj
-
-    # The default time to look at until, either now or five minutes ago.
-    _until_time = current_time_offset
-    _rslt_until = int(datetime.timestamp(_until_time))
-
-    # If we are futher back than 24 hours reset the clock.
-    if ft_diff > timedelta(hours=24):
+    # If the difference is more than 24 hours (in seconds), reset the from_time
+    if time_difference > SECONDS_IN_DAY:  # 24 hours in seconds
         helper.log_info("Adjusting from_time to 24 hours ago")
+        adjusted_from_time = now - SECONDS_IN_DAY  # Subtract 24 hours in seconds
+        helper.log_info(f"Previous Run: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(from_time))}")
+        helper.log_info(f"Adjusted from_time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(adjusted_from_time))}")
+        return until_time, adjusted_from_time
 
-        from_time = now - timedelta(hours=24)
-        from_time.replace(second=0)
-        from_time_int = int(from_time.timestamp())
-
-        return _rslt_until, from_time_int
-
-    from_time_int = int(datetime.timestamp(from_time_dt_obj))
-
-    return _rslt_until, from_time_int
-
+    return until_time, from_time
 
 def get_results(title, helper, config):
     loop = True
@@ -236,8 +224,8 @@ class Config:
     url: str
     headers: dict
     events: dict
-    from_time: str
-    until_time: str
+    from_time: int
+    until_time: int
     global_email: str
     global_corp_api_name: str
     current_site: str
@@ -266,7 +254,7 @@ class Config:
         self.global_corp_api_name = global_corp_api_name
         self.current_site = current_site
         self.event_ids = []
-        self.user_agent_version = "1.0.36"
+        self.user_agent_version = "1.0.37"
         self.user_agent_string = (
             f"TA-sigsci-waf/{self.user_agent_version} "
             f"(PythonRequests {requests.__version__})"

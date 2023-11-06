@@ -3,3 +3,6 @@
 .DS_Store
 *.log
 .idea
+*jupyter-env
+*.ipynb
+dev/

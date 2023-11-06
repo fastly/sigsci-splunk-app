@@ -2,6 +2,7 @@
 from timeit import default_timer as timer
 import requests
 import json
+import time
 from datetime import datetime
 from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time
 
@@ -58,7 +59,7 @@ def collect_events(helper, ew):
         helper.log_info(f"last_run_until: {last_run_until}")
         if last_run_until is None:
             (until_time, from_time) = get_from_and_until_times(
-                delta, five_min_offset=False
+                helper, delta, five_min_offset=False
             )
         else:
             (until_time, from_time) = get_until_time(
@@ -76,8 +77,8 @@ def collect_events(helper, ew):
         helper.save_check_point(last_name, until_time)
         helper.log_info("SiteName: %s" % site_name)
 
-        helper.log_info(f"Start Period: {datetime.fromtimestamp(from_time)}")
-        helper.log_info(f"End Period: {datetime.fromtimestamp(until_time)}")
+        helper.log_info(f"Start Period: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(from_time))}")
+        helper.log_info(f"End Period: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(until_time))}")
 
         input_name = helper.get_input_stanza_names()
         single_name = ""
