@@ -2,7 +2,7 @@ splunk_sdk-1.6.18.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7z
 splunk_sdk-1.6.18.dist-info/METADATA,sha256=5ED-1H2wwnFJCt_D8WCmTPPXsqka2En6ECHtGBV20x0,741
 splunk_sdk-1.6.18.dist-info/RECORD,,
 splunk_sdk-1.6.18.dist-info/REQUESTED,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
-splunk_sdk-1.6.18.dist-info/WHEEL,sha256=pkctZYzUS4AYVn6dJ-7367OJZivF2e8RA9b_ZBjif18,92
+splunk_sdk-1.6.18.dist-info/WHEEL,sha256=yQN5g4mg4AybRjkgi-9yy4iQEFibGQmlz78Pik5Or-A,92
 splunk_sdk-1.6.18.dist-info/top_level.txt,sha256=taq2YYfOB31tNefwW73s54xytiB_sy8bpbyBAfn0kr8,10
 splunklib/__init__.py,sha256=1J8iSAeiM_2xN9uSvFnqTT9krVVB0-8gUZvxLGl8QbA,772
 splunklib/binding.py,sha256=ui61YzW0zKpYjUrdaqyyHM_mhshvyRaH5_mGbKLY8zc,58384

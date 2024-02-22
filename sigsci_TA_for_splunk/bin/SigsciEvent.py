@@ -50,6 +50,22 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.BaseModInput):
                                          description="This is the Site API Name. It should not be a URL.",
                                          required_on_create=True,
                                          required_on_edit=False))
+        scheme.add_argument(smi.Argument("disable_catchup", title="Disable Catchup",
+                                         description="Time is always set based from now - delta (Interval). Recommended to be True. Default: True.",
+                                         required_on_create=False,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("twenty_hour_catchup", title="24 Hour Catchup",
+                                         description="If last stored timestamp was over 24 hours, resets to exactly 24 hours ago instead to meet API limitations.",
+                                         required_on_create=False,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("request_timeout", title="Request Timeout",
+                                         description="Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                                         required_on_create=True,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("read_timeout", title="read_timeout",
+                                         description="Configured Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                                         required_on_create=True,
+                                         required_on_edit=False))
         return scheme
 
     def get_app_name(self):
@@ -69,6 +85,8 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.BaseModInput):
 
     def get_checkbox_fields(self):
         checkbox_fields = []
+        checkbox_fields.append("disable_catchup")
+        checkbox_fields.append("twenty_hour_catchup")
         return checkbox_fields
 
     def get_global_checkbox_fields(self):

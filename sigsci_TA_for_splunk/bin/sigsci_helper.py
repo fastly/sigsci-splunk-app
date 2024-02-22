@@ -1,17 +1,18 @@
-import json
+import json, sys, os
 from datetime import datetime, timedelta, timezone
 from timeit import default_timer as timer
+from urllib.parse import urlparse, parse_qs
 import time
 import requests
 
 def check_response(
-    code,
-    response_text,
-    global_email,
-    global_corp_api_name,
-    from_time=None,
-    until_time=None,
-    current_site=None,
+        code,
+        response_text,
+        global_email,
+        global_corp_api_name,
+        from_time=None,
+        until_time=None,
+        current_site=None,
 ):
     success = False
     base_msg = {
@@ -30,6 +31,9 @@ def check_response(
         else:
             base_msg["error"] = "BAD API Request"
             base_msg["msg"] = "bad-request"
+    if code == 414:
+        base_msg["error"] = "request uri size exceeded"
+        base_msg["msg"] = "request-uri-too-large"
     elif code == 500:
         base_msg["error"] = "Internal Server Error"
         base_msg["msg"] = "internal-error"
@@ -38,7 +42,10 @@ def check_response(
             "Unauthorized. Incorrect credentials or lack of permissions"
         )
         base_msg["msg"] = "unauthorized"
-    elif 400 <= code <= 599 and code != 400 and code != 500 and code != 401:
+    elif code == 429:
+        base_msg["error"] = "Too Many Requests"
+        base_msg["msg"] = "too-many-requests"
+    elif code is not None and 400 <= code <= 599 and code not in [400, 500, 401]:
         base_msg["error"] = "Unknown Error"
         base_msg["msg"] = "other-error"
     else:
@@ -46,19 +53,20 @@ def check_response(
     return success, base_msg
 
 
-def get_request_data(url, headers, helper):
-    method = "GET"
+def get_request_data(url, method, payload, headers, request_timeout, read_timeout, helper):
+    response_code = None
+    response_error = "Initial error state"
     try:
         response_raw = helper.send_http_request(
             url,
             method,
             parameters=None,
-            payload=None,
+            payload=payload,
             headers=headers,
             cookies=None,
             verify=True,
             cert=None,
-            timeout=None,
+            timeout=(request_timeout, read_timeout),
             use_proxy=True,
         )
         response_code = response_raw.status_code
@@ -72,12 +80,12 @@ def get_request_data(url, headers, helper):
             helper.log_error(error)
     except Exception as error:
         data = {"data": []}
-        helper.log_info("Unable to parse API Response")
+        helper.log_info("HTTP Request Failed")
         helper.log_error(error)
-        response_code = 500
-        response_error = "Unable to parse API Response"
+        response_error = "Request Failure"
 
     return data, response_code, response_error
+
 
 def timestamp_sanitise(_time):
     return _time - _time % 60
@@ -87,7 +95,6 @@ def get_from_and_until_times(helper, delta, five_min_offset=False):
     until_time = int(time.time())
     helper.log_info(f"Time Now: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(int(time.time())))}")
 
-    
     # Check if five_min_offset is needed.
     if five_min_offset:
         until_time -= 5 * 60  # Subtract 5 minutes in seconds
@@ -107,9 +114,10 @@ def get_from_and_until_times(helper, delta, five_min_offset=False):
 
 SECONDS_IN_DAY= 24 * 60 * 60
 
-def get_until_time(helper, from_time, interval, five_min_offset=False):
+def get_until_time(helper, from_time, delta, twenty_hour_catchup, catchup_disabled, five_min_offset=False):
     # Get current epoch time rounded down to nearest minute
     now = timestamp_sanitise(int(time.time()))
+    from_time = timestamp_sanitise(from_time)
     helper.log_info(f"Time Now: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(now))}")
 
     if five_min_offset:
@@ -119,26 +127,54 @@ def get_until_time(helper, from_time, interval, five_min_offset=False):
 
     # Calculate the difference between now and the from_time
     time_difference = now - from_time
-
-    # If the difference is more than 24 hours (in seconds), reset the from_time
-    if time_difference > SECONDS_IN_DAY:  # 24 hours in seconds
-        helper.log_info("Adjusting from_time to 24 hours ago")
-        adjusted_from_time = now - SECONDS_IN_DAY  # Subtract 24 hours in seconds
-        helper.log_info(f"Previous Run: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(from_time))}")
-        helper.log_info(f"Adjusted from_time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(adjusted_from_time))}")
-        return until_time, adjusted_from_time
+    
+    # If catchups are disabled, don't catch up at all.
+    # We evaluate by ecking if the time difference is greater than the delta added to itself.
+    if catchup_disabled:
+        if time_difference > delta + delta:
+            helper.log_debug("Last checkpoint is greater than current delta. Not attempting to catch up and resetting from delta.")
+            until_time, from_time = get_from_and_until_times(
+                helper, delta, five_min_offset=True
+            )
+        return until_time, from_time
+            
+    # If the difference is more than 24 hours (in seconds).
+    if time_difference > SECONDS_IN_DAY:
+        helper.log_info("Last checkpoint is over 24 hours ago, due to API limitations this cannot be greater than 24 hours and must be reset.")
+        if twenty_hour_catchup:
+            helper.log_info("Setting from_time to 24 hours ago.")
+            adjusted_from_time = now - SECONDS_IN_DAY  # Subtract 24 hours in seconds
+            helper.log_info(f"Previous Run: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(from_time))}")
+            helper.log_info(f"Adjusted from_time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(adjusted_from_time))}")
+            return until_time, adjusted_from_time
+        else:
+            helper.log_info("Last checkpoint was over 24 hours ago, resetting the time from delta.")
+            # Return times as if checkpoint was none.
+            until_time, from_time = get_from_and_until_times(
+                helper, delta, five_min_offset=True
+            )
+            return until_time, from_time
 
     return until_time, from_time
 
 def get_results(title, helper, config):
     loop = True
     counter = 1
+    method = "GET"
+    payload = None
     while loop:
         pulled_events = []
         helper.log_info("Processing page %s" % counter)
         start_page = timer()
+
         response_result, response_code, response_error = get_request_data(
-            config.url, config.headers, helper
+            config.url,
+            method,
+            payload,
+            config.headers,
+            config.request_timeout,
+            config.read_timeout,
+            helper
         )
 
         pulled, request_details = check_response(
@@ -163,7 +199,13 @@ def get_results(title, helper, config):
         else:
             response = response_result
 
-        number_requests_per_page = len(response["data"])
+        try:
+            number_requests_per_page = len(response["data"])
+        except KeyError:
+            number_requests_per_page = 0
+            helper.log_error("Invalid response")
+            exit(1) # we should probably break this flow.
+            
         helper.log_info(f"Number of {title} for Page: {number_requests_per_page}")
 
         for data in response["data"]:
@@ -207,8 +249,23 @@ def get_results(title, helper, config):
             helper.log_info(f"Total Page Time: {page_time_result} seconds")
             loop = False
         elif next_url is not None:
-            config.url = config.api_host + next_url
+            # Remove any additional query parameters past the request_limit.
+            config.url = config.url.split('&', 1)[0]
+            
+            # The NextID is too large to put into query parameters, so extract the value and put it in a form body.
+            # These cannot contain `?` so safe to use as a split separator.
+            # See: SDS-1720
+            method = "POST"
+            config.headers['content-type'] = "application/x-www-form-urlencoded"
+            next_value = next_url.split('?', 1)[1] if '?' in next_url else ''
+            query_dict = parse_qs(next_value)
+            next_value = query_dict.get('next', [None])[0]
+            payload = f"next={next_value}"
+
+            helper.log_debug("next url: %s" % {config.url})
+            helper.log_debug("payload: %s" % {payload})
             helper.log_info("Finished Page %s" % counter)
+
             counter += 1
             end_page = timer()
             page_time = end_page - start_page
@@ -222,30 +279,37 @@ def get_results(title, helper, config):
 class Config:
     api_host: str
     url: str
+    method: str
     headers: dict
-    events: dict
-    from_time: int
-    until_time: int
+    events: list
+    from_time: str
+    until_time: str
     global_email: str
     global_corp_api_name: str
     current_site: str
     user_agent_version: str
     user_agent_string: str
     event_ids: list
+    request_timeout: float
+    read_timeout: float
 
     def __init__(
-        self,
-        api_host=None,
-        url=None,
-        headers=None,
-        from_time=None,
-        until_time=None,
-        global_email=None,
-        global_corp_api_name=None,
-        current_site=None,
+            self,
+            api_host=None,
+            url=None,
+            method=None,
+            headers=None,
+            from_time=None,
+            until_time=None,
+            global_email=None,
+            global_corp_api_name=None,
+            current_site=None,
+            request_timeout=None,
+            read_timeout=None,
     ):
         self.api_host = api_host
         self.url = url
+        self.method = method
         self.headers = headers
         self.events = []
         self.from_time = from_time
@@ -254,7 +318,9 @@ class Config:
         self.global_corp_api_name = global_corp_api_name
         self.current_site = current_site
         self.event_ids = []
-        self.user_agent_version = "1.0.37"
+        self.request_timeout = request_timeout
+        self.read_timeout = read_timeout
+        self.user_agent_version = "1.0.38"
         self.user_agent_string = (
             f"TA-sigsci-waf/{self.user_agent_version} "
             f"(PythonRequests {requests.__version__})"
