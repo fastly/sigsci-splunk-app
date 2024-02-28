@@ -7,15 +7,15 @@ attack_and_anomaly_signals_only = Only retrieves requests that contain attack or
 request_timeout = Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.
 read_timeout = Configures Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.
 
-[SigsciActivity://<name>]
-disable_catchup = 
-twenty_hour_catchup = 
-request_timeout = Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.
-read_timeout = Configures Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.
-
 [SigsciEvent://<name>]
 site_api_name = This is the Site API Name. It should not be a URL.
 disable_catchup = Time is always set based from now - delta (Interval). Recommended to be True. Default: True.
 twenty_hour_catchup = If last stored timestamp was over 24 hours, resets to exactly 24 hours ago instead to meet API limitations.
 request_timeout = Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.
 read_timeout = Configured Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.
+
+[SigsciActivity://<name>]
+disable_catchup = 
+twenty_hour_catchup = 
+request_timeout = Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.
+read_timeout = Configures Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.

@@ -249,21 +249,23 @@ def get_results(title, helper, config):
             helper.log_info(f"Total Page Time: {page_time_result} seconds")
             loop = False
         elif next_url is not None:
-            # Remove any additional query parameters past the request_limit.
-            config.url = config.url.split('&', 1)[0]
-            
             # The NextID is too large to put into query parameters, so extract the value and put it in a form body.
-            # These cannot contain `?` so safe to use as a split separator.
             # See: SDS-1720
-            method = "POST"
-            config.headers['content-type'] = "application/x-www-form-urlencoded"
-            next_value = next_url.split('?', 1)[1] if '?' in next_url else ''
-            query_dict = parse_qs(next_value)
-            next_value = query_dict.get('next', [None])[0]
-            payload = f"next={next_value}"
+            if "feed/requests" in config.url:
+                # Remove any additional query parameters past the request_limit.
+                # These cannot contain `?` so safe to use as a split separator.
+                config.url = config.url.split('&', 1)[0]
+                method = "POST"
+                config.headers['content-type'] = "application/x-www-form-urlencoded"
+                next_value = next_url.split('?', 1)[1] if '?' in next_url else ''
+                query_dict = parse_qs(next_value)
+                next_value = query_dict.get('next', [None])[0]
+                payload = f"next={next_value}"
+                helper.log_debug("payload: %s" % {payload})  
+            else: 
+                config.url = config.api_host + next_url
 
             helper.log_debug("next url: %s" % {config.url})
-            helper.log_debug("payload: %s" % {payload})
             helper.log_info("Finished Page %s" % counter)
 
             counter += 1
