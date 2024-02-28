@@ -13,7 +13,6 @@ import warnings
 import functools
 import itertools
 import posixpath
-import contextlib
 import collections
 
 from . import _adapters, _meta, _py39compat
@@ -974,13 +973,42 @@ def _top_level_declared(dist):
     return (dist.read_text('top_level.txt') or '').split()
 
 
-def _top_level_inferred(dist):
-    opt_names = {
-        f.parts[0] if len(f.parts) > 1 else inspect.getmodulename(f)
-        for f in always_iterable(dist.files)
-    }
+def _topmost(name: PackagePath) -> Optional[str]:
+    """
+    Return the top-most parent as long as there is a parent.
+    """
+    top, *rest = name.parts
+    return top if rest else None
 
-    @pass_none
+
+def _get_toplevel_name(name: PackagePath) -> str:
+    """
+    Infer a possibly importable module name from a name presumed on
+    sys.path.
+
+    >>> _get_toplevel_name(PackagePath('foo.py'))
+    'foo'
+    >>> _get_toplevel_name(PackagePath('foo'))
+    'foo'
+    >>> _get_toplevel_name(PackagePath('foo.pyc'))
+    'foo'
+    >>> _get_toplevel_name(PackagePath('foo/__init__.py'))
+    'foo'
+    >>> _get_toplevel_name(PackagePath('foo.pth'))
+    'foo.pth'
+    >>> _get_toplevel_name(PackagePath('foo.dist-info'))
+    'foo.dist-info'
+    """
+    return _topmost(name) or (
+        # python/typeshed#10328
+        inspect.getmodulename(name)  # type: ignore
+        or str(name)
+    )
+
+
+def _top_level_inferred(dist):
+    opt_names = set(map(_get_toplevel_name, always_iterable(dist.files)))
+
     def importable_name(name):
         return '.' not in name
 

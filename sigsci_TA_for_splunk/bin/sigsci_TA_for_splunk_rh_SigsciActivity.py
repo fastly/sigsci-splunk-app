@@ -34,10 +34,34 @@ fields = [
         )
     ), 
     field.RestField(
-        'place_holder',
+        'disable_catchup',
+        required=False,
+        encrypted=False,
+        default=True,
+        validator=None
+    ), 
+    field.RestField(
+        'twenty_hour_catchup',
         required=False,
         encrypted=False,
         default=None,
+        validator=None
+    ), 
+    field.RestField(
+        'request_timeout',
+        required=True,
+        encrypted=False,
+        default='60',
+        validator=validator.String(
+            min_len=0, 
+            max_len=8192, 
+        )
+    ), 
+    field.RestField(
+        'read_timeout',
+        required=True,
+        encrypted=False,
+        default='60',
         validator=validator.String(
             min_len=0, 
             max_len=8192, 

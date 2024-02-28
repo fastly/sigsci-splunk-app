@@ -50,6 +50,30 @@ class ModInputSigsciRequests(modinput_wrapper.base_modinput.BaseModInput):
                                          description="This is the API Name of the site to pull request data from. This should not be a URL.",
                                          required_on_create=True,
                                          required_on_edit=False))
+        scheme.add_argument(smi.Argument("request_limit", title="Request Limit",
+                                         description="The amount of request objects returned in the array. Default: 100. Max:1000",
+                                         required_on_create=True,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("disable_catchup", title="Disable Catchup",
+                                         description="Disables catch-up behavior. Request feed will always be ingested from now and the delta (and offset). We recommend keeping this as checked for request feeds with large amounts of requests.",
+                                         required_on_create=False,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("twenty_hour_catchup", title="24 Hour Catchup",
+                                         description="In the event the last time stored is >24hours the TA will try can try and catch-up from exactly 24 hours ago, otherwise resets to now - delta. Disable catchup must be false in order to work.",
+                                         required_on_create=False,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("attack_and_anomaly_signals_only", title="Attack & Anomaly Signals Only",
+                                         description="Only retrieves requests that contain attack or anomaly signals. Please evaluate your signal configuration if there are overly inclusive signals creating excessive requests.",
+                                         required_on_create=False,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("request_timeout", title="Request Timeout",
+                                         description="Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                                         required_on_create=True,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("read_timeout", title="Read Timeout",
+                                         description="Configures Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                                         required_on_create=True,
+                                         required_on_edit=False))
         return scheme
 
     def get_app_name(self):
@@ -69,6 +93,9 @@ class ModInputSigsciRequests(modinput_wrapper.base_modinput.BaseModInput):
 
     def get_checkbox_fields(self):
         checkbox_fields = []
+        checkbox_fields.append("disable_catchup")
+        checkbox_fields.append("twenty_hour_catchup")
+        checkbox_fields.append("attack_and_anomaly_signals_only")
         return checkbox_fields
 
     def get_global_checkbox_fields(self):
