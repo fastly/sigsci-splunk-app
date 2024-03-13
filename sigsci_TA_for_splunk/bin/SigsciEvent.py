@@ -51,11 +51,11 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.BaseModInput):
                                          required_on_create=True,
                                          required_on_edit=False))
         scheme.add_argument(smi.Argument("disable_catchup", title="Disable Catchup",
-                                         description="Time is always set based from now - delta (Interval). Recommended to be True. Default: True.",
+                                         description="Disables catch-up behavior. Events will always be ingested from now minus the delta (including an offset for the requests feed). Recommended to be left true. Default: True.",
                                          required_on_create=False,
                                          required_on_edit=False))
         scheme.add_argument(smi.Argument("twenty_hour_catchup", title="24 Hour Catchup",
-                                         description="If last stored timestamp was over 24 hours, resets to exactly 24 hours ago instead to meet API limitations.",
+                                         description="In the event the last time stored is >24Hours the TA will try and catch-up from exactly 24 hours ago, otherwise resets to now minus the delta. \'Disable Catchup\' must be False in order to work.",
                                          required_on_create=False,
                                          required_on_edit=False))
         scheme.add_argument(smi.Argument("request_timeout", title="Request Timeout",

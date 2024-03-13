@@ -55,11 +55,11 @@ class ModInputSigsciRequests(modinput_wrapper.base_modinput.BaseModInput):
                                          required_on_create=True,
                                          required_on_edit=False))
         scheme.add_argument(smi.Argument("disable_catchup", title="Disable Catchup",
-                                         description="Disables catch-up behavior. Request feed will always be ingested from now and the delta (and offset). We recommend keeping this as checked for request feeds with large amounts of requests.",
+                                         description="Disables catch-up behavior. Events will always be ingested from now minus the delta (including an offset for the requests feed). Recommended to be left true. Default: True.",
                                          required_on_create=False,
                                          required_on_edit=False))
         scheme.add_argument(smi.Argument("twenty_hour_catchup", title="24 Hour Catchup",
-                                         description="In the event the last time stored is >24hours the TA will try can try and catch-up from exactly 24 hours ago, otherwise resets to now - delta. Disable catchup must be false in order to work.",
+                                         description="In the event the last time stored is >24hours the TA will try can try and catch-up from exactly 24 hours ago, otherwise resets to now minus the delta. \'Disable Catchup\' must be False in order to work.",
                                          required_on_create=False,
                                          required_on_edit=False))
         scheme.add_argument(smi.Argument("attack_and_anomaly_signals_only", title="Attack & Anomaly Signals Only",
