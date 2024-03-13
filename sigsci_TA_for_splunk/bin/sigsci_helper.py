@@ -5,6 +5,30 @@ from urllib.parse import urlparse, parse_qs
 import time
 import requests
 
+
+def validate_timeouts(request_timeout, read_timeout):
+    # Read Timeout passed to send_http_request. Type: float.
+    # https://docs.splunk.com/Documentation/AddonBuilder/4.1.4/UserGuide/PythonHelperFunctions
+    # We do this per input module as splunk provides no way to validate global configuration arguments.
+    if request_timeout is None:
+        raise ValueError("Request timeout configuration is missing")
+    try:
+        request_timeout = float(request_timeout)
+    except ValueError:
+        raise ValueError(f"Invalid request timeout value: {request_timeout}")
+    if request_timeout > 300.0 or request_timeout <= 0:
+        raise ValueError(f"Request timeout must be between 0 and 300 seconds, got {request_timeout}")
+
+    # Read Timeout passed to send_http_request. Type: float.
+    if read_timeout is None:
+        raise ValueError("Read timeout configuration is missing")
+    try:
+        read_timeout = float(read_timeout)
+    except ValueError:
+        raise ValueError(f"Invalid read timeout value: {read_timeout}")
+    if read_timeout > 300.0 or read_timeout <= 0:
+        raise ValueError(f"Read timeout must be between 0 and 300 seconds, got {read_timeout}")
+
 def check_response(
         code,
         response_text,
@@ -203,8 +227,8 @@ def get_results(title, helper, config):
             number_requests_per_page = len(response["data"])
         except KeyError:
             number_requests_per_page = 0
-            helper.log_error("Invalid response")
-            exit(1) # we should probably break this flow.
+            helper.log_error(f"Invalid response: {response_result}")
+            break
             
         helper.log_info(f"Number of {title} for Page: {number_requests_per_page}")
 

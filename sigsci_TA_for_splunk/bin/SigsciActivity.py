@@ -47,11 +47,11 @@ class ModInputSigsciActivity(modinput_wrapper.base_modinput.BaseModInput):
         For other input types, arguments should be get from input_module. Defining new input types could be easier.
         """
         scheme.add_argument(smi.Argument("disable_catchup", title="Disable Catchup",
-                                         description="",
+                                         description="Disables catch-up behavior. Events will always be ingested from now minus the delta (including an offset for the requests feed). Recommended to be left true. Default: True.",
                                          required_on_create=False,
                                          required_on_edit=False))
         scheme.add_argument(smi.Argument("twenty_hour_catchup", title="24 Hour Catchup",
-                                         description="",
+                                         description="In the event the last time stored is >24Hours the TA will try and catch-up from exactly 24 hours ago, otherwise resets to now minus the delta. \'Disable Catchup\' must be false in order to work.",
                                          required_on_create=False,
                                          required_on_edit=False))
         scheme.add_argument(smi.Argument("request_timeout", title="Request Timeout",

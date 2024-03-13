@@ -3,7 +3,7 @@ from timeit import default_timer as timer
 import json
 import time
 from datetime import datetime
-from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time
+from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time, validate_timeouts
 
 """
     IMPORTANT
@@ -18,29 +18,10 @@ from sigsci_helper import get_from_and_until_times, Config, get_results, get_unt
 
 
 def validate_input(helper, definition):
-    # Read Timeout passed to send_http_request. Type: float.
-    # https://docs.splunk.com/Documentation/AddonBuilder/4.1.4/UserGuide/PythonHelperFunctions
-    # We do this per input module as splunk provides no way to validate global configuration arguments :')
     request_timeout = definition.parameters.get("request_timeout", None)
-    if request_timeout is None:
-        raise ValueError("Request timeout configuration is missing")
-    try:
-        request_timeout = float(request_timeout)
-    except ValueError:
-        raise ValueError(f"Invalid request timeout value: {request_timeout}")
-    if request_timeout > 300.0 or request_timeout <= 0:
-        raise ValueError(f"Request timeout must be between 0 and 300 seconds, got {request_timeout}")
-
-    # Read Timeout passed to send_http_request. Type: float.
     read_timeout = definition.parameters.get("read_timeout", None)
-    if read_timeout is None:
-        raise ValueError("Read timeout configuration is missing")
-    try:
-        read_timeout = float(read_timeout)
-    except ValueError:
-        raise ValueError(f"Invalid read timeout value: {read_timeout}")
-    if read_timeout > 300.0 or read_timeout <= 0:
-        raise ValueError(f"Read timeout must be between 0 and 300 seconds, got {read_timeout}")
+    validate_timeouts(request_timeout, read_timeout)    
+    
     # Catchup Opts
     twenty_hour_catchup = definition.parameters.get('twenty_hour_catchup', None)
     disable_catchup = definition.parameters.get('disable_catchup', None)
