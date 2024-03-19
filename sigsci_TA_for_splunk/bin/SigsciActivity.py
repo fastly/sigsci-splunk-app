@@ -46,9 +46,21 @@ class ModInputSigsciActivity(modinput_wrapper.base_modinput.BaseModInput):
         For customized inputs, hard code the arguments here to hide argument detail from users.
         For other input types, arguments should be get from input_module. Defining new input types could be easier.
         """
-        scheme.add_argument(smi.Argument("place_holder", title="Place Holder",
-                                         description="It was required to have one option even if it isn\'t needed. You can skip this one.",
+        scheme.add_argument(smi.Argument("disable_catchup", title="Disable Catchup",
+                                         description="Disables catch-up behavior. Events will always be ingested from now minus the delta (including an offset for the requests feed). Recommended to be left true. Default: True.",
                                          required_on_create=False,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("twenty_hour_catchup", title="24 Hour Catchup",
+                                         description="In the event the last time stored is >24Hours the TA will try and catch-up from exactly 24 hours ago, otherwise resets to now minus the delta. \'Disable Catchup\' must be false in order to work.",
+                                         required_on_create=False,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("request_timeout", title="Request Timeout",
+                                         description="Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                                         required_on_create=True,
+                                         required_on_edit=False))
+        scheme.add_argument(smi.Argument("read_timeout", title="Read Timeout",
+                                         description="Configures Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                                         required_on_create=True,
                                          required_on_edit=False))
         return scheme
 
@@ -69,6 +81,8 @@ class ModInputSigsciActivity(modinput_wrapper.base_modinput.BaseModInput):
 
     def get_checkbox_fields(self):
         checkbox_fields = []
+        checkbox_fields.append("disable_catchup")
+        checkbox_fields.append("twenty_hour_catchup")
         return checkbox_fields
 
     def get_global_checkbox_fields(self):

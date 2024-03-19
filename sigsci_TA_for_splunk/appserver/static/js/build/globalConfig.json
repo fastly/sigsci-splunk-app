@@ -248,8 +248,28 @@
                         "label": "Site API Name"
                     },
                     {
-                        "field": "place_holder",
-                        "label": "Place Holder"
+                        "field": "disable_catchup",
+                        "label": "Disable Catchup"
+                    },
+                    {
+                        "field": "twenty_hour_catchup",
+                        "label": "24 Hour Catchup"
+                    },
+                    {
+                        "field": "request_timeout",
+                        "label": "Request Timeout"
+                    },
+                    {
+                        "field": "read_timeout",
+                        "label": "read_timeout"
+                    },
+                    {
+                        "field": "request_limit",
+                        "label": "Request Limit"
+                    },
+                    {
+                        "field": "attack_and_anomaly_signals_only",
+                        "label": "Attack & Anomaly Signals Only"
                     }
                 ],
                 "actions": [
@@ -332,6 +352,172 @@
                                     "errorMsg": "Max length of text input is 8192"
                                 }
                             ]
+                        },
+                        {
+                            "field": "disable_catchup",
+                            "label": "Disable Catchup",
+                            "help": "Disables catch-up behavior. Events will always be ingested from now minus the delta (including an offset for the requests feed). Recommended to be left true. Default: True.",
+                            "required": false,
+                            "type": "checkbox",
+                            "defaultValue": true
+                        },
+                        {
+                            "field": "twenty_hour_catchup",
+                            "label": "24 Hour Catchup",
+                            "help": "In the event the last time stored is >24Hours the TA will try and catch-up from exactly 24 hours ago, otherwise resets to now minus the delta. 'Disable Catchup' must be False in order to work. ",
+                            "required": false,
+                            "type": "checkbox"
+                        },
+                        {
+                            "field": "request_timeout",
+                            "label": "Request Timeout",
+                            "help": "Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                            "required": true,
+                            "type": "text",
+                            "defaultValue": "60",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 0,
+                                    "maxLength": 8192,
+                                    "errorMsg": "Max length of text input is 8192"
+                                }
+                            ],
+                            "options": {
+                                "placeholder": "60"
+                            }
+                        },
+                        {
+                            "field": "read_timeout",
+                            "label": "read_timeout",
+                            "help": "Configured Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                            "required": true,
+                            "type": "text",
+                            "defaultValue": "60",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 0,
+                                    "maxLength": 8192,
+                                    "errorMsg": "Max length of text input is 8192"
+                                }
+                            ],
+                            "options": {
+                                "placeholder": "60"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "SigsciActivity",
+                    "title": "SigsciActivity",
+                    "entity": [
+                        {
+                            "field": "name",
+                            "label": "Name",
+                            "type": "text",
+                            "help": "Enter a unique name for the data input",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "pattern": "^[a-zA-Z]\\w*$",
+                                    "errorMsg": "Input Name must start with a letter and followed by alphabetic letters, digits or underscores."
+                                },
+                                {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100,
+                                    "errorMsg": "Length of input name should be between 1 and 100"
+                                }
+                            ]
+                        },
+                        {
+                            "field": "interval",
+                            "label": "Interval",
+                            "type": "text",
+                            "required": true,
+                            "help": "Time interval of input in seconds.",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "pattern": "^\\-[1-9]\\d*$|^\\d*$",
+                                    "errorMsg": "Interval must be an integer."
+                                }
+                            ]
+                        },
+                        {
+                            "field": "index",
+                            "label": "Index",
+                            "type": "singleSelect",
+                            "defaultValue": "default",
+                            "options": {
+                                "endpointUrl": "data/indexes",
+                                "createSearchChoice": true,
+                                "denyList": "^_.*$"
+                            },
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 80,
+                                    "errorMsg": "Length of index name should be between 1 and 80."
+                                }
+                            ]
+                        },
+                        {
+                            "field": "disable_catchup",
+                            "label": "Disable Catchup",
+                            "help": "Disables catch-up behavior. Events will always be ingested from now minus the delta (including an offset for the requests feed). Recommended to be left true. Default: True.",
+                            "required": false,
+                            "type": "checkbox",
+                            "defaultValue": true
+                        },
+                        {
+                            "field": "twenty_hour_catchup",
+                            "label": "24 Hour Catchup",
+                            "help": "In the event the last time stored is >24Hours the TA will try and catch-up from exactly 24 hours ago, otherwise resets to now minus the delta. 'Disable Catchup' must be false in order to work. ",
+                            "required": false,
+                            "type": "checkbox"
+                        },
+                        {
+                            "field": "request_timeout",
+                            "label": "Request Timeout",
+                            "help": "Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                            "required": true,
+                            "type": "text",
+                            "defaultValue": "60",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 0,
+                                    "maxLength": 8192,
+                                    "errorMsg": "Max length of text input is 8192"
+                                }
+                            ],
+                            "options": {
+                                "placeholder": "60"
+                            }
+                        },
+                        {
+                            "field": "read_timeout",
+                            "label": "Read Timeout",
+                            "help": "Configures Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                            "required": true,
+                            "type": "text",
+                            "defaultValue": "60",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 0,
+                                    "maxLength": 8192,
+                                    "errorMsg": "Max length of text input is 8192"
+                                }
+                            ],
+                            "options": {
+                                "placeholder": "60"
+                            }
                         }
                     ]
                 },
@@ -407,73 +593,52 @@
                                     "errorMsg": "Max length of text input is 8192"
                                 }
                             ]
-                        }
-                    ]
-                },
-                {
-                    "name": "SigsciActivity",
-                    "title": "SigsciActivity",
-                    "entity": [
-                        {
-                            "field": "name",
-                            "label": "Name",
-                            "type": "text",
-                            "help": "Enter a unique name for the data input",
-                            "required": true,
-                            "validators": [
-                                {
-                                    "type": "regex",
-                                    "pattern": "^[a-zA-Z]\\w*$",
-                                    "errorMsg": "Input Name must start with a letter and followed by alphabetic letters, digits or underscores."
-                                },
-                                {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 100,
-                                    "errorMsg": "Length of input name should be between 1 and 100"
-                                }
-                            ]
                         },
                         {
-                            "field": "interval",
-                            "label": "Interval",
+                            "field": "request_limit",
+                            "label": "Request Limit",
+                            "help": "The amount of request objects returned in the array. Default: 100. Max:1000",
+                            "required": true,
                             "type": "text",
-                            "required": true,
-                            "help": "Time interval of input in seconds.",
-                            "validators": [
-                                {
-                                    "type": "regex",
-                                    "pattern": "^\\-[1-9]\\d*$|^\\d*$",
-                                    "errorMsg": "Interval must be an integer."
-                                }
-                            ]
-                        },
-                        {
-                            "field": "index",
-                            "label": "Index",
-                            "type": "singleSelect",
-                            "defaultValue": "default",
-                            "options": {
-                                "endpointUrl": "data/indexes",
-                                "createSearchChoice": true,
-                                "denyList": "^_.*$"
-                            },
-                            "required": true,
+                            "defaultValue": "1000",
                             "validators": [
                                 {
                                     "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 80,
-                                    "errorMsg": "Length of index name should be between 1 and 80."
+                                    "minLength": 0,
+                                    "maxLength": 8192,
+                                    "errorMsg": "Max length of text input is 8192"
                                 }
                             ]
                         },
                         {
-                            "field": "place_holder",
-                            "label": "Place Holder",
-                            "help": "It was required to have one option even if it isn't needed. You can skip this one.",
+                            "field": "disable_catchup",
+                            "label": "Disable Catchup",
+                            "help": "Disables catch-up behavior. Events will always be ingested from now minus the delta (including an offset for the requests feed). Recommended to be left true. Default: True.",
                             "required": false,
+                            "type": "checkbox",
+                            "defaultValue": true
+                        },
+                        {
+                            "field": "twenty_hour_catchup",
+                            "label": "24 Hour Catchup",
+                            "help": "In the event the last time stored is >24hours the TA will try can try and catch-up from exactly 24 hours ago, otherwise resets to now minus the delta. 'Disable Catchup' must be False in order to work.",
+                            "required": false,
+                            "type": "checkbox"
+                        },
+                        {
+                            "field": "attack_and_anomaly_signals_only",
+                            "label": "Attack & Anomaly Signals Only",
+                            "help": "Only retrieves requests that contain attack or anomaly signals. Please evaluate your signal configuration if there are overly inclusive signals creating excessive requests.",
+                            "required": false,
+                            "type": "checkbox"
+                        },
+                        {
+                            "field": "request_timeout",
+                            "label": "Request Timeout",
+                            "help": "Configures Request Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                            "required": true,
                             "type": "text",
+                            "defaultValue": "60",
                             "validators": [
                                 {
                                     "type": "string",
@@ -483,8 +648,24 @@
                                 }
                             ],
                             "options": {
-                                "placeholder": "Not needed"
+                                "placeholder": "Request Timeout"
                             }
+                        },
+                        {
+                            "field": "read_timeout",
+                            "label": "Read Timeout",
+                            "help": "Configures Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                            "required": true,
+                            "type": "text",
+                            "defaultValue": "60",
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "minLength": 0,
+                                    "maxLength": 8192,
+                                    "errorMsg": "Max length of text input is 8192"
+                                }
+                            ]
                         }
                     ]
                 }

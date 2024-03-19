@@ -3,7 +3,7 @@ from timeit import default_timer as timer
 import json
 import time
 from datetime import datetime
-from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time
+from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time, validate_timeouts
 
 """
     IMPORTANT
@@ -18,7 +18,15 @@ from sigsci_helper import get_from_and_until_times, Config, get_results, get_unt
 
 
 def validate_input(helper, definition):
-    # This example accesses the modular input variable
+    request_timeout = definition.parameters.get("request_timeout", None)
+    read_timeout = definition.parameters.get("read_timeout", None)
+    validate_timeouts(request_timeout, read_timeout)    
+    
+    # Catchup Opts
+    twenty_hour_catchup = definition.parameters.get('twenty_hour_catchup', None)
+    disable_catchup = definition.parameters.get('disable_catchup', None)
+    if twenty_hour_catchup and disable_catchup is True:
+        raise ValueError(f"Catch up values are mutually exclusive")
     pass
 
 
@@ -34,6 +42,18 @@ def collect_events(helper, ew):
     api_host = "https://dashboard.signalsciences.net"
     helper.log_info("email: %s" % global_email)
     helper.log_info("corp: %s" % global_corp_api_name)
+    
+    # Request / Read Timeouts
+    request_timeout = float(helper.get_arg("request_timeout"))
+    read_timeout = float(helper.get_arg('read_timeout'))
+    helper.log_info(f"request configuration is: request:{request_timeout}, read: {read_timeout}")
+    
+    # CatchUp Config Declaration
+    twenty_hour_catchup = helper.get_arg('twenty_hour_catchup')
+    helper.log_info(f"twenty four hour catchup is: {twenty_hour_catchup}")
+    
+    disable_catchup = helper.get_arg('disable_catchup')
+    helper.log_info(f"disable catchup is: {disable_catchup}")
 
     def pull_events(delta, key=None):
         last_run_until = helper.get_check_point("activity_last_until_time")
@@ -44,7 +64,7 @@ def collect_events(helper, ew):
             )
         else:
             (until_time, from_time) = get_until_time(
-                helper, last_run_until, delta, five_min_offset=False
+                helper, last_run_until, delta, twenty_hour_catchup=twenty_hour_catchup, catchup_disabled=disable_catchup, five_min_offset=False
             )
         if from_time is None:
             helper.log_info(f"{last_run_until} >= current now time, skipping run")
@@ -88,6 +108,8 @@ def collect_events(helper, ew):
             global_email=global_email,
             global_corp_api_name=global_corp_api_name,
             current_site="",
+            request_timeout=request_timeout,
+            read_timeout=read_timeout,
         )
         config.headers = {
             "Content-type": "application/json",
