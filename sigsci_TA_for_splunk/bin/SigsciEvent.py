@@ -63,7 +63,7 @@ class ModInputSigsciEvent(modinput_wrapper.base_modinput.BaseModInput):
                                          required_on_create=True,
                                          required_on_edit=False))
         scheme.add_argument(smi.Argument("read_timeout", title="read_timeout",
-                                         description="Configured Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                                         description="Configures Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
                                          required_on_create=True,
                                          required_on_edit=False))
         return scheme
