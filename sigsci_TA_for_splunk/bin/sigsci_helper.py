@@ -29,6 +29,21 @@ def validate_timeouts(request_timeout, read_timeout):
     if read_timeout > 300.0 or read_timeout <= 0:
         raise ValueError(f"Read timeout must be between 0 and 300 seconds, got {read_timeout}")
 
+def validate_catchup(disable_catchup, twenty_hour_catchup):
+    ## definitions.parameters.get returns the defaultValue for a checkbox as a str on init with the value of `true`.
+    ## We have to accomodate for when a user tries and ticks both without changing the value.
+    if disable_catchup is not None:
+        if disable_catchup.lower() == 'true':
+            disable_catchup = 1
+        else:
+            disable_catchup = int(disable_catchup)
+            
+        if twenty_hour_catchup is not None:
+            twenty_hour_catchup = int(twenty_hour_catchup)
+        
+        if twenty_hour_catchup and disable_catchup:
+            raise ValueError("Catch up values are mutually exclusive")
+
 def check_response(
         code,
         response_text,

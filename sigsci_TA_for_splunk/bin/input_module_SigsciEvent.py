@@ -4,7 +4,7 @@ import requests
 import json
 import time
 from datetime import datetime
-from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time, validate_timeouts
+from sigsci_helper import get_from_and_until_times, Config, get_results, get_until_time, validate_timeouts, validate_catchup
 
 """
     IMPORTANT
@@ -41,11 +41,10 @@ def validate_input(helper, definition):
         )
         raise ValueError("InvalidSiteName", msg)
 
-    # Catchup Opts
-    twenty_hour_catchup = definition.parameters.get('twenty_hour_catchup', None)
-    disable_catchup = definition.parameters.get('disable_catchup', None)
-    if twenty_hour_catchup and disable_catchup is True:
-        raise ValueError(f"Catch up values are mutually exclusive")
+    # Catchup Behaviour Validation    
+    disable_catchup = definition.parameters.get("disable_catchup", None)
+    twenty_hour_catchup = definition.parameters.get("twenty_hour_catchup", None)
+    validate_catchup(disable_catchup, twenty_hour_catchup)
     
     pass
 
