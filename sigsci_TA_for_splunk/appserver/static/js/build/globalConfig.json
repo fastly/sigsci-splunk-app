@@ -651,7 +651,7 @@
                         {
                             "field": "read_timeout",
                             "label": "read_timeout",
-                            "help": "Configured Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
+                            "help": "Configures Read Timeout for HTTP operations. Consider increasing if on a slow connection or pagination batches are large.",
                             "required": true,
                             "type": "text",
                             "defaultValue": "60",
