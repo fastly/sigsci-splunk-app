@@ -1,5 +1,5 @@
 ### Supportability notice 📖  
-This app is considered open source and **has no official SLA**. If you are experiencing issues with the app itself please raise an issue via github issues instead of contacting fastly support. Otherwise, if you are experiencing issues with the API itself, please raise an issue via support@fastly.com
+This TA app is considered open source and **has no official SLA**. If you are experiencing issues with the app itself please raise an issue via github issues instead of contacting fastly support. Otherwise, if you are experiencing issues with the API itself, please raise an issue via support@fastly.com
 
 # Signal Sciences TA for Splunk App
 
