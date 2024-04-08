@@ -1,3 +1,6 @@
+### Supportability notice 📖  
+This app is considered open source and **has no official SLA**. If you are experiencing issues with the app itself please raise an issue via github issues rather than contacting fastly support. Otherwise, if you are experiencing issues with the API itself, please raise an issue via support@fastly.com
+
 # Signal Sciences TA for Splunk App
 
 This app for Splunk connects to the Signal Sciences API in order to pull data into Splunk. 
