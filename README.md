@@ -2,16 +2,25 @@
 
 This app for Splunk connects to the Signal Sciences API in order to pull data into Splunk. 
 
+## Supportability 
+
+As stated on the [splunk marketplace](https://splunkbase.splunk.com/app/3495), this app is not officially supported by Fastly support channels. 
+Any support requests are to be raised via GitHub issues and any response is to be considered best effort. 
+
+If using on-premises agents it is highly recommended to use `waf-data-log` (https://docs.fastly.com/en/ngwaf/agent-config#agentcfg_waf-data-log) and to the logs to splunk using the appropriate log collection
+utilities (i.e using a [Forwarder](https://www.splunk.com/en_us/blog/learn/splunk-universal-forwarder.html)) that can be exported to an event collector (i.e [HEC](https://docs.splunk.com/Documentation/Splunk/9.3.0/Data/UsetheHTTPEventCollector)).
+
+Because this TA relies on the upstream API availability for request/inspection data, sites with large amounts of traffic, considered mission critical or are inclusive of a immediate event notification window, a forward logging strategy of exporting real time inspection data from the agent itself is strongly recommended. 
+
+If you have any questions regarding the appropriate logging strategy that is right for you, and how to get up and running, please email `support@fastly.com` to help find a solution that fits your requirements.
+
 ## Signal Sciences REST API Endpoints used
 
-The latest version **only** supports using API Tokens. 
+1. [Events](https://docs.fastly.com/signalsciences/api/#_corps__corpName__sites__siteName__analytics_events_get): https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/analytics/events
+2. [Requests*](https://docs.fastly.com/signalsciences/api/#_corps__corpName__sites__siteName__feed_requests_get): https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/feed/requests
+3. [Activity](https://docs.fastly.com/signalsciences/api/#_corps__corpName__activity_get): https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/activity
 
-Information about API Tokens can be found at https://docs.signalsciences.net/developer/using-our-api/
-
-1. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/analytics/events
-2. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/sites/{{site}}/feed/requests
-3. https://dashboard.signalsciences.net/api/v0/corps/{{corp}}/activity
-
+*The bulk collection endpoint (`/feed/requests`) aimed for client side collection, differs to the endpoint the NGWAF dashboard uses (`/requests`). If you notice discrepencies between the `totalCount` of events between the 2 endpoints for the same period of time, this is typically not a result of the TA itself, please contact support@fastly.com for further support in this instance.
 
 ## Where to get API Information?
 
@@ -25,9 +34,7 @@ You can also get the API Name for Dashboard Sites from the Manage Sites menu if 
 
 
 ## Indexes
-
 The Technical Adapter does not create an index by default.
-
 
 ## Configuration 1.0.27 or higher
 
